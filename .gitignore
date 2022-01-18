@@ -5,7 +5,7 @@ build/
 
 ### gitignore에 보안상 문제로 적어놓았음 application.properties(기본)만 올림
 src/main/resources/application-prod.properties
-src/main/resources/application-test.properties
+src/main/resources/application-dev.properties
 src/main/resources/application-jwt.properties
 !**/src/main/**/build/
 !**/src/test/**/build/
