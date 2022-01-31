@@ -3,4 +3,4 @@ spring:
     name: 9T
   profiles:
     include: jwt,oauth,redis,mail
-    active: prod 
+    active: prod
