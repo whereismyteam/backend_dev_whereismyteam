@@ -1,10 +1,9 @@
-package backend.whereIsMyTeam.user;
+package backend.whereIsMyTeam.study;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class UserRepository {
-
+public class StudyController {
 }
