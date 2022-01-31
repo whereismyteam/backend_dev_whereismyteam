@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: 9T
+  profiles:
+    include: jwt,oauth,redis,mail
+    active: prod
