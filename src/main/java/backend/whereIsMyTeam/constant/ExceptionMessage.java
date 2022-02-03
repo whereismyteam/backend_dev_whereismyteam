@@ -5,4 +5,6 @@ import lombok.Getter;
 @Getter
 public class ExceptionMessage {
     public static final String USER_NOT_EXIST_MESSAGE = "유저가 존재하지 않습니다.";
+    public static final String USER_EMAIL_ALREADY_EXISTS_MESSAGE = "중복된 이메일입니다.";
+    public static final String  EmailAuthToken_Not_Found_Exception_MESSAGE = "이매일 인증 토큰을 찾을 수 없습니다.";
 }
