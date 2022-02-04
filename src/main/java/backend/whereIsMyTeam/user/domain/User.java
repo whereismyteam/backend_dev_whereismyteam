@@ -54,7 +54,7 @@ public class User extends BaseTimeEntity {
             this.password = password;
             this.nickName = nickName;
             //this.provider = provider;
-            //this.roles = Collections.singletonList(Role.ROLE_USER);
+            this.roles = Collections.singletonList(Role.ROLE_USER);
             this.emailAuth = emailAuth;
             this.profileImgIdx=profileImgIdx;
         }
