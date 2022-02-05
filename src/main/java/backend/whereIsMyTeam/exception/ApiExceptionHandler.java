@@ -1,9 +1,7 @@
 package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
-import backend.whereIsMyTeam.exception.User.EmailAuthTokenNotFoundException;
-import backend.whereIsMyTeam.exception.User.UserEmailAlreadyExistsException;
-import backend.whereIsMyTeam.exception.User.UserNotExistException;
+import backend.whereIsMyTeam.exception.User.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -51,6 +49,34 @@ public class ApiExceptionHandler {
 
         ApiException apiException = new ApiException(
                 ExceptionMessage.EmailAuthToken_Not_Found_Exception_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {UserNickNameAlreadyExistsException.class})
+    public ResponseEntity<Object> handleUserNickNameAlreadyExistsException(UserNickNameAlreadyExistsException e) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.User_NickName_Exists_Exception_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {EmptyNickNameException.class})
+    public ResponseEntity<Object> handleEmptyNickNameException(EmptyNickNameException e) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.EMPTY_NICKNAME_Exception_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );

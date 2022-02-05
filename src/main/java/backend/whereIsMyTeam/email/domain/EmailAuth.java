@@ -7,19 +7,18 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-
+/*
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+*/
 public class EmailAuth {
-
+/*
     private static final Long MAX_EXPIRE_TIME = 5L;
 
-   // @Id
-  //  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  //  private Long id;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String authToken;
@@ -38,5 +37,5 @@ public class EmailAuth {
 
     public void useToken() {
         this.expired = true;
-    }
+    }*/
 }

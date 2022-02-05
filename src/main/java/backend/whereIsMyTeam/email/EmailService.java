@@ -20,7 +20,7 @@ public class EmailService {
         smm.setSubject("구해줘 팀원 회원가입 이메일 인증"); //이메일 제목
 
         //차후 배포용으로 올릴 땐 구해줘 팀원 도메인 주소로 바꿔서 올려야함
-        smm.setText("https://localhost:9000/sign/confirm-email?email="+email+"&authToken="+authToken); //이메일 내용
+        smm.setText("http://localhost:9000/emails/confirm-email?email="+email+"&authToken="+authToken); //이메일 내용
 
         javaMailSender.send(smm);
     }

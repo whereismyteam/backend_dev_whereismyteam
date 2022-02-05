@@ -3,22 +3,23 @@ package backend.whereIsMyTeam.user;
 import backend.whereIsMyTeam.email.EmailService;
 import backend.whereIsMyTeam.exception.User.EmailAuthTokenNotFoundException;
 import backend.whereIsMyTeam.exception.User.UserEmailAlreadyExistsException;
+import backend.whereIsMyTeam.exception.User.UserNickNameAlreadyExistsException;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.redis.RedisService;
-import backend.whereIsMyTeam.security.JwtTokenProvider;
-import backend.whereIsMyTeam.user.dto.EmailAuthRequestDto;
-import backend.whereIsMyTeam.user.dto.UserRegisterRequestDto;
-import backend.whereIsMyTeam.user.dto.UserRegisterResponseDto;
+import backend.whereIsMyTeam.user.dto.*;
 import backend.whereIsMyTeam.redis.domain.RedisKey;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
+
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+
 
 
 @Service
@@ -27,7 +28,6 @@ import java.util.UUID;
 public class UserService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
     private final UserRepository userRepository;
@@ -43,13 +43,10 @@ public class UserService {
     @Transactional
     public UserRegisterResponseDto registerUser(UserRegisterRequestDto requestDto) {
 
-        //이메일 중복 확인 이후에 api 따로 분리하기!
-        validateDuplicated(requestDto.getEmail());
-
-        String authToken = UUID.randomUUID().toString();
+       // String authToken = UUID.randomUUID().toString();
         //유효 시간 5분
         //key+이메일, 전달 데이터로
-        redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
+       // redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
 
         //User 객체 저장
         User user = userRepository.save(
@@ -62,7 +59,7 @@ public class UserService {
                         .build());
 
         //이메일 전송
-        emailService.send(requestDto.getEmail(), authToken);
+       // emailService.send(requestDto.getEmail(), authToken);
 
         return UserRegisterResponseDto.builder()
                 .userIdx(user.getUserIdx())
@@ -70,11 +67,6 @@ public class UserService {
                 .build();
     }
 
-    //이미 존재하는 이메일인지 확인
-    public void validateDuplicated(String email) {
-        if (userRepository.findByEmail(email).isPresent())
-            throw new UserEmailAlreadyExistsException();
-    }
 
     /**
      * 이메일 인증 성공
@@ -94,4 +86,42 @@ public class UserService {
         user.emailVerifiedSuccess();
     }
 
+    /**
+     * 이메일 중복 체크
+     * @param requestDto
+     */
+    public void confirmNewEmail(NewEmailRequestDto requestDto) {
+        //예외 런타임오류 상속하는 거 맞는지
+        if (userRepository.findByEmail(requestDto.getEmail()).isPresent())
+            throw new UserEmailAlreadyExistsException();
+    }
+
+    /**
+     * 닉네임 중복 체크
+     * @param requestDto
+     */
+    public void confirmNewNickName(NewNickNameRequestDto requestDto) {
+        //예외 런타임오류 상속하는 거 맞는지
+        if (userRepository.findByNickName(requestDto.getNickName()).isPresent())
+            throw new UserNickNameAlreadyExistsException();
+    }
+    /*public void confirmNewNickName(String nickName) {
+        //예외 런타임오류 상속하는 거 맞는지
+        if (userRepository.findByNickName(nickName).isPresent())
+            throw new UserNickNameAlreadyExistsException();
+    }*/
+
+    /**
+     * 이메일 인증 링크 전송
+     * @param requestDto
+     */
+    @Transactional
+    public void sendEmail(NewEmailRequestDto requestDto) {
+        String authToken = UUID.randomUUID().toString();
+        //유효 시간 5분
+        //key+이메일, 전달 데이터로
+        redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
+        //이메일 전송
+        emailService.send(requestDto.getEmail(), authToken);
+    }
 }
