@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum RedisKey {
-    REGISTER("Register_"), EAUTH("EAuth_");
+    REFRESH("REFRESH_"), EAUTH("EAUTH_");
 
     private String key;
 
