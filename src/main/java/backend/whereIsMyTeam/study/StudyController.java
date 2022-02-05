@@ -3,12 +3,10 @@ package backend.whereIsMyTeam.study;
 import lombok.RequiredArgsConstructor;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
-@Transactional(readOnly = true)
+@RestController
 @RequiredArgsConstructor
-public class StudyService {
+public class StudyController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 }
