@@ -19,6 +19,7 @@ public class RedisService {
         return (String) redisTemplate.opsForValue().get(key);
     }
 
+    //만료기간 설정
     public void setDataWithExpiration(String key, String value, Long time) {
         if (this.getData(key) != null)
             this.deleteData(key);
@@ -30,3 +31,4 @@ public class RedisService {
         redisTemplate.delete(key);
     }
 }
+

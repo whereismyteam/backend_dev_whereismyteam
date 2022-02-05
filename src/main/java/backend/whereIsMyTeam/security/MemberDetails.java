@@ -54,4 +54,5 @@ public class MemberDetails implements UserDetails {//Security User
     public boolean isEnabled() {
         return true;
     }
+<<<<<<< HEAD
 }

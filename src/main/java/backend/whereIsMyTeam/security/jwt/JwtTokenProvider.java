@@ -1,4 +1,4 @@
-package backend.whereIsMyTeam.security;
+package backend.whereIsMyTeam.security.jwt;
 
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +19,13 @@ import java.util.Date;
 @Setter
 @RequiredArgsConstructor
 public class JwtTokenProvider {
-
+    //Access 토큰
 
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private static final long tokenValidTime = 1000L * 60 * 30; // 30분
-    private static final long refreshTokenValidTime = 1000L * 60 * 60 * 24 * 7; // 7일
+    public static final long TOKEN_VALID_TIME = 1000L * 60 * 30; // 30분
+    public static final long REFRESH_TOKEN_VALID_TIME = 1000L * 60 * 60 * 24 * 7; // 7일
 
     private final UserDetailsService userDetailsService;
 
@@ -35,13 +35,13 @@ public class JwtTokenProvider {
     }
 
     public String createToken(String email) {
-        Claims claims = Jwts.claims().setSubject(email);
+        Claims claims = Jwts.claims().setSubject(email);    //토큰의 키=email(중복x)
         Date now = new Date();
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + tokenValidTime))
+                .setExpiration(new Date(now.getTime() + TOKEN_VALID_TIME))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
@@ -51,17 +51,19 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + refreshTokenValidTime))
+                .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALID_TIME))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
 
+    //토큰으로 실DB 저장된 인증된 회원객체로->인증객체 얻기
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(getMemberEmail(token));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(getUserEmail(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    public String getMemberEmail(String token) {
+    //이메일을 얻기 위해 토큰을 디코딩
+    public String getUserEmail(String token) {
         try {
             return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
         } catch(ExpiredJwtException e) {
@@ -69,10 +71,13 @@ public class JwtTokenProvider {
         }
     }
 
+    // 토큰을 이용하기 위해 Header에서 꺼내옴
     public String resolveToken(HttpServletRequest req) {
+
         return req.getHeader("X-AUTH-TOKEN");
     }
 
+    //토큰이 만료되었는지 확인
     public boolean validateTokenExpiration(String token) {
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
