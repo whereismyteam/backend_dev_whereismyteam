@@ -120,6 +120,7 @@ public class UserController {
 
         return responseService.getSingleResult("사용 가능한 닉네임 입니다.");
     }
+
    /* @GetMapping("/nickNames/{nickName}")
     public SingleResult<String> confirmNewNickName( @PathVariable String nickName) {
         //빈 값 들어오는 거 오류 처리

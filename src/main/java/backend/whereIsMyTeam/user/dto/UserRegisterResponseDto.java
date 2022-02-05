@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserRegisterResponseDto {
 
-    private Long userIdx;
+    private Integer userIdx;
 
     private String email;
 
     @Builder
-    public UserRegisterResponseDto(Long userIdx, String email) {
+    public UserRegisterResponseDto(Integer userIdx, String email) {
         this.userIdx = userIdx;
         this.email = email;
     }
