@@ -49,8 +49,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/test").permitAll()
                 .anyRequest().authenticated()
                 .and()
+                //authenticationEntryPoint에서의 예외처리를 CustomAuthenticationEntryPoint가 처리하도록
                 .exceptionHandling().authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                 .and()
+                //accessDeniedHandler에서의 예외처리를 CustomAccessDeniedHandler가 처리하도록
                 .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler())
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class); // jwt 필터 추가
