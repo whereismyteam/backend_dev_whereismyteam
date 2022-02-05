@@ -67,5 +67,4 @@ public class User extends BaseTimeEntity {
             this.emailAuth = true;
         }
 
-
 }

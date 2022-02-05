@@ -32,4 +32,5 @@ public class MemberDetailService implements UserDetailsService {
                         .collect(Collectors.toList()))
                 .build();
     }
+
 }
