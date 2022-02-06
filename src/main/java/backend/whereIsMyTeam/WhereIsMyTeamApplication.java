@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableCaching
 @EnableJpaAuditing
 @SpringBootApplication
-@MapperScan(basePackages = "org.springframework.security.crypto.password")
 public class WhereIsMyTeamApplication {
 
 	public static void main(String[] args) {
