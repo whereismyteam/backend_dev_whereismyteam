@@ -24,7 +24,7 @@ public class User extends BaseTimeEntity {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(nullable = false, unique = true)
-        private Long userIdx;
+        private Integer userIdx;
 
         @Enumerated(EnumType.STRING)
         private UserStatus status;
@@ -54,7 +54,7 @@ public class User extends BaseTimeEntity {
             this.password = password;
             this.nickName = nickName;
             //this.provider = provider;
-            this.roles = Collections.singletonList(Role.ROLE_USER);
+            //this.roles = Collections.singletonList(Role.ROLE_USER);
             this.emailAuth = emailAuth;
             this.profileImgIdx=profileImgIdx;
         }

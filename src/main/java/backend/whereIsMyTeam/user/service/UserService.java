@@ -15,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
 import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import backend.whereIsMyTeam.security.dto.TokenResponseDto;
 import org.springframework.stereotype.Service;
@@ -58,8 +56,8 @@ public class UserService {
             throw new LoginFailureException();
 
         //이메일 인증 여부 예외처리
-        if (!user.getEmailAuth())
-            throw new EmailNotAuthenticatedException();
+//        if (!user.getEmailAuth())
+//            throw new EmailNotAuthenticatedException();
 
         String refreshToken = jwtTokenProvider.createRefreshToken();
 
