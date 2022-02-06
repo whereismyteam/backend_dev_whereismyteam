@@ -116,6 +116,7 @@ public class UserService {
         //key+이메일, 전달 데이터로
         // redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
 
+        //이메일과 닉네임 중복을 처리한 후 들어오는 api라 따로 관련 validation 처리 진행x
         //User 객체 저장
         User user = userRepository.save(
                 User.builder()
