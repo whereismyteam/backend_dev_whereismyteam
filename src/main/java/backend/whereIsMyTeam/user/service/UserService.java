@@ -52,6 +52,7 @@ public class UserService {
         //입력한 로그인 정보(이메일) 회원조회
         User user = userRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(UserNotFoundException::new);
+        //해당 이메일로 찾아지지 않으면 오류메세지
 
         //인코딩 하기 전 PW값 같은지 비교
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword()))
@@ -83,7 +84,7 @@ public class UserService {
 
         //KEY값 이용해 Refresh 토큰값 읽어오기
         String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+requestDto.getEmail());
-        System.out.println("이것은 Dto에서 들어온 refresh토큰 값" + requestDto.getRefreshToken());
+
         //refresh 토큰 x or dto에서 불러온 refresh 토큰과 다를경우 예외처리
         if (findRefreshToken == null || !findRefreshToken.equals(requestDto.getRefreshToken()))
             throw new InvalidRefreshTokenException();
