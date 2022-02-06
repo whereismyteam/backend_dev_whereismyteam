@@ -6,18 +6,28 @@ import backend.whereIsMyTeam.security.jwt.JwtAuthenticationFilter;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
+@Configuration
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Bean
+    public PasswordEncoder getPasswordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -44,11 +54,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 //추후 수정 필요
-                .antMatchers("/sign/**").permitAll()
-                .antMatchers("/social/**").permitAll()
-                .antMatchers("/exception/**").permitAll()
-                .antMatchers("/confirm-email").permitAll()
-                .antMatchers("/test").permitAll()
+                .antMatchers("/users/**").permitAll()
+//                .antMatchers("/social/**").permitAll()
+//                .antMatchers("/exception/**").permitAll()
+//                .antMatchers("/confirm-email").permitAll()
+//                .antMatchers("/test").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 //authenticationEntryPoint에서의 예외처리를 CustomAuthenticationEntryPoint가 처리하도록
