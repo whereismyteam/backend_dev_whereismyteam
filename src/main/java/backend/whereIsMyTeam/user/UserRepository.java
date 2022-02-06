@@ -1,10 +1,17 @@
 package backend.whereIsMyTeam.user;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequiredArgsConstructor
-public class UserRepository {
+import backend.whereIsMyTeam.user.domain.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
+
+public interface UserRepository extends JpaRepository <User, Long>{
+
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByNickName(String nickName);
+
+    //Optional<User> findByEmailAndProvider(String email, String provider);
 }
