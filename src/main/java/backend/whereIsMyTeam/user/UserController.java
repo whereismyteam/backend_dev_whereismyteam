@@ -91,7 +91,7 @@ public class UserController {
 
     /**
      * 이메일 중복 체크 API
-     * [GET] /users/emails
+     * [GET] /users/emails?email=
      * @return SingleResult<String>
      */
     @GetMapping("/emails")
@@ -102,12 +102,12 @@ public class UserController {
        //     throw new EmptyEmailException();
         userService.confirmNewEmail(requestDto);
 
-        return responseService.getSingleResult("사용 가능한 이메일 입니다.");
+        return responseService.getSingleResult("사용 가능한 이메일입니다.");
     }
 
     /**
      * 닉네임 중복 체크 API
-     * [GET] /users/nickNames
+     * [GET] /users/nickNames?nickName=
      * @return SingleResult<String>
      */
     @GetMapping("/nickNames")
@@ -118,7 +118,7 @@ public class UserController {
 
         userService.confirmNewNickName(requestDto);
 
-        return responseService.getSingleResult("사용 가능한 닉네임 입니다.");
+        return responseService.getSingleResult("사용 가능한 닉네임입니다.");
     }
 
    /* @GetMapping("/nickNames/{nickName}")
