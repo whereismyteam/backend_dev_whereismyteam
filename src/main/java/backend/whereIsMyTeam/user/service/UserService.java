@@ -8,26 +8,24 @@ import backend.whereIsMyTeam.redis.RedisService;
 import backend.whereIsMyTeam.redis.dto.ReIssueRequestDto;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
 import backend.whereIsMyTeam.user.UserRepository;
+import backend.whereIsMyTeam.user.domain.Role;
 import backend.whereIsMyTeam.user.domain.User;
 import backend.whereIsMyTeam.user.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import backend.whereIsMyTeam.security.dto.TokenResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.UUID;
 
 @Slf4j
 @Service
 @Transactional(readOnly = true)
-@MapperScan(basePackages = {"org.springframework.security.crypto.password.PasswordEncoder"})
 @RequiredArgsConstructor
 public class UserService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -121,8 +119,7 @@ public class UserService {
                         .email(requestDto.getEmail())
                         .password(passwordEncoder.encode(requestDto.getPassword()))
                         .nickName(requestDto.getNickName())
-                        .emailAuth(false)
-                        .profileImgIdx(1L)
+                        .roles(Collections.singletonList(Role.ROLE_NOTAUTH))
                         .build());
 
         //이메일 전송
@@ -146,6 +143,7 @@ public class UserService {
             throw new EmailAuthTokenNotFoundException();
         //이메일 존재하는지 예외처리
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
+
 
         //둘다 존재하면 redis 서버 데이터 지움
         redisService.deleteData(RedisKey.EAUTH.getKey()+requestDto.getEmail());

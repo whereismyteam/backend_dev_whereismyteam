@@ -1,6 +1,8 @@
 package backend.whereIsMyTeam.config;
 
 import lombok.Getter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -15,11 +17,11 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class) //Auditing(자동으로 값 매핑) 기능 추가
 public abstract class BaseTimeEntity {
 
-    @CreatedDate
+    @CreationTimestamp // 생성 시간 자동 입력
     @Column(updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createAt;
 
-    @LastModifiedDate
+    @UpdateTimestamp
     private LocalDateTime updateAt;
 
 }
