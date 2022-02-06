@@ -35,7 +35,7 @@ public class UserController {
     * 로컬 로그인 API
     */
     @PostMapping("/login")
-    public SingleResult<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto requestDto) {
+    public SingleResult<UserLoginResponseDto> login(@RequestBody @Valid UserLoginRequestDto requestDto) {
         UserLoginResponseDto responseDto = userService.loginUser(requestDto);
         return responseService.getSingleResult(responseDto);
     }

@@ -19,7 +19,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import backend.whereIsMyTeam.security.dto.TokenResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -46,7 +48,7 @@ public class UserService {
     * 로컬 로그인
      */
     @Transactional
-    public UserLoginResponseDto loginUser(UserLoginRequestDto requestDto) {
+    public UserLoginResponseDto loginUser(@RequestBody @Valid UserLoginRequestDto requestDto) {
         //입력한 로그인 정보(이메일) 회원조회
         User user = userRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(UserNotFoundException::new);

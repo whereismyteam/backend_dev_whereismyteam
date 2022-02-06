@@ -13,4 +13,5 @@ public class ExceptionMessage {
     public static final String USER_NOT_FOUND_MESSAGE = "입력하신 이메일을 찾을 수 없습니다.";
     public static final String LOGIN_FAILURE_MESSAGE = "입력하신 비밀번호는 잘못된 비밀번호 입니다.";
 
+    public static String INVALID_REFRESH_Token_MESSAGE = "유효한 Refresh 토큰이 아닙니다. ";
 }
