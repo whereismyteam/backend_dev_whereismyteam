@@ -2,13 +2,20 @@ package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
 import backend.whereIsMyTeam.exception.User.*;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 
 @ControllerAdvice
 public class ApiExceptionHandler {
@@ -77,6 +84,38 @@ public class ApiExceptionHandler {
 
         ApiException apiException = new ApiException(
                 ExceptionMessage.EMPTY_NICKNAME_Exception_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({BindException.class})
+    public  ResponseEntity<Object> handleBindException(BindException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        BindingResult bindingResult = e.getBindingResult();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (FieldError fieldError : bindingResult.getFieldErrors()) {
+            stringBuilder.append(fieldError.getDefaultMessage());
+        }
+
+        ApiException apiException = new ApiException(
+                stringBuilder.toString(),
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class})
+    public  ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+        BindingResult bindingResult = e.getBindingResult();
+        ApiException apiException = new ApiException(
+                bindingResult.getFieldError().getDefaultMessage(),
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );
