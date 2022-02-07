@@ -10,7 +10,10 @@ import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 
 @Entity
@@ -66,6 +69,8 @@ public class User extends BaseTimeEntity {
             this.roles.add(role);
         }
 
+        public void changeRole() { this.roles.set(this.getUserIdx().intValue(),Role.ROLE_AUTH); }
+        public void changeEmailAuth() { this.emailAuth=true;}
         public void emailVerifiedSuccess() {
             this.emailAuth = true;
         }
