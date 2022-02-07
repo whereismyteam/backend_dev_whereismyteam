@@ -2,6 +2,7 @@ package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
 import backend.whereIsMyTeam.exception.User.*;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
@@ -150,6 +151,23 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
+
+
+
+    @ExceptionHandler(value = {LoginFailureException.class})
+    public ResponseEntity<Object> handleLoginFailure(LoginFailureException e) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.LOGIN_FAILURE_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
 
 
 }
