@@ -1,6 +1,7 @@
 package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
+import backend.whereIsMyTeam.exception.Jwt.InvalidRefreshTokenException;
 import backend.whereIsMyTeam.exception.User.*;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,47 @@ import java.util.Arrays;
 @ControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(value = {LoginFailureException.class})
+    public ResponseEntity<Object> handleLoginFailure(LoginFailureException e) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.LOGIN_FAILURE_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {InvalidRefreshTokenException.class})
+    public ResponseEntity<Object> handleInvalidRefreshToken(InvalidRefreshTokenException e) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.INVALID_REFRESH_Token_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler(value = {UserNotFoundException.class})
+    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException e) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.USER_NOT_FOUND_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
 
     @ExceptionHandler(value = {UserNotExistException.class})
     public ResponseEntity<Object> handleUserNotExistException(UserNotExistException e) {
@@ -76,7 +118,7 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
-
+/*
     @ExceptionHandler(value = {EmptyNickNameException.class})
     public ResponseEntity<Object> handleEmptyNickNameException(EmptyNickNameException e) {
 
@@ -89,7 +131,7 @@ public class ApiExceptionHandler {
         );
 
         return new ResponseEntity<>(apiException, httpStatus);
-    }
+    }*/
 
     @ExceptionHandler({BindException.class})
     public  ResponseEntity<Object> handleBindException(BindException e) {
@@ -116,6 +158,20 @@ public class ApiExceptionHandler {
         BindingResult bindingResult = e.getBindingResult();
         ApiException apiException = new ApiException(
                 bindingResult.getFieldError().getDefaultMessage(),
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+
+    @ExceptionHandler({UserRoleNotExistException.class})
+    public  ResponseEntity<Object> handleUserRoleNotExistException(UserRoleNotExistException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.ROLE_NOT_EXIST_EXCEPTION_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );

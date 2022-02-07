@@ -35,7 +35,7 @@ out/
 !**/src/test/**/out/
 
 ### NetBeans ###
-/nbproject/private/
+/nbproject/private/A
 /nbbuild/
 /dist/
 /nbdist/
@@ -43,3 +43,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+SecurityConfig.java
+EmailService.java
+
