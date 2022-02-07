@@ -118,7 +118,7 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
-
+/*
     @ExceptionHandler(value = {EmptyNickNameException.class})
     public ResponseEntity<Object> handleEmptyNickNameException(EmptyNickNameException e) {
 
@@ -131,7 +131,7 @@ public class ApiExceptionHandler {
         );
 
         return new ResponseEntity<>(apiException, httpStatus);
-    }
+    }*/
 
     @ExceptionHandler({BindException.class})
     public  ResponseEntity<Object> handleBindException(BindException e) {
@@ -164,4 +164,19 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
+
+
+    @ExceptionHandler({UserRoleNotExistException.class})
+    public  ResponseEntity<Object> handleUserRoleNotExistException(UserRoleNotExistException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.ROLE_NOT_EXIST_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
 }

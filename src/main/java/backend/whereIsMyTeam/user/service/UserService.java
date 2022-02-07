@@ -171,7 +171,10 @@ public class UserService {
             throw new EmailAuthTokenNotFoundException();
         //이메일 존재하는지 예외처리
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
-
+        //이메일 인증 받은 정보로 변환
+       // Role role = userRepository.findByUserIdx(user.getUserIdx()).orElseThrow(UserRoleNotExistException::new);
+        user.changeRole();
+        user.changeEmailAuth();
         //둘다 존재하면 redis 서버 데이터 지움
         redisService.deleteData(RedisKey.EAUTH.getKey()+requestDto.getEmail());
 
@@ -209,6 +212,11 @@ public class UserService {
      */
     @Transactional
     public void sendEmail(NewEmailRequestDto requestDto) {
+
+        //가입하지않은 유저 오류 처리
+        if (userRepository.findByEmail(requestDto.getEmail()).isEmpty())
+            throw new UserNotExistException();
+
         String authToken = UUID.randomUUID().toString();
         //유효 시간 5분
         //key+이메일, 전달 데이터로
