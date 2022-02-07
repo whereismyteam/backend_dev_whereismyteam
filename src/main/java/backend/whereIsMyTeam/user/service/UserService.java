@@ -103,12 +103,13 @@ public class UserService {
      * @return
      */
     @Transactional
-    public TokenResponseDto reIssue(ReIssueRequestDto requestDto) {
+    public TokenResponseDto reIssue(@RequestBody @Valid ReIssueRequestDto requestDto) {
 
         //KEY값 이용해 Refresh 토큰값 읽어오기
         String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+requestDto.getEmail());
 
-        //Redis에서 꺼내온 값이 없거나, 사용자가 가져온 Refresh토큰값이 Redis랑 다르다면 예외처리
+        //Redis에서 꺼내온 값이 없음 or 사용자가 가져온 Refresh토큰값이 Redis랑 다르다-> 예외처리
+        //유효한 refresh 토큰이 아님
         if (findRefreshToken == null || !findRefreshToken.equals(requestDto.getRefreshToken()))
             throw new InvalidRefreshTokenException();
 
