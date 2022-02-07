@@ -43,36 +43,59 @@ public class UserService {
 
     private final EmailService emailService;
 
+
     /*
     * LoginRequestDto로 들어온 값을 통해 로그인 진행
     * 로컬 로그인
      */
     @Transactional
     public UserLoginResponseDto loginUser(@RequestBody @Valid UserLoginRequestDto requestDto) {
-        //입력한 로그인 정보(이메일) 회원조회
+        //Email로 실제 저장된 유저인지 확인
         User user = userRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(UserNotFoundException::new);
-        //해당 이메일로 찾아지지 않으면 오류메세지
 
-        //인코딩 하기 전 PW값 같은지 비교
+        //패스워드 오류 검증
         if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword()))
             throw new LoginFailureException();
 
-        //이메일 인증 여부 예외처리 -> P) 로그인이 이뤄지지 못함
-//        if (!user.getEmailAuth())
-//            throw new EmailNotAuthenticatedException();
-
+        //토큰 발급 (Access, Refresh)
         String refreshToken = jwtTokenProvider.createRefreshToken();
 
-        //redis에 key-value, 만료기간 저장
-        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey() + user.getEmail(),
-                refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
+        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey()
+                +user.getEmail(), refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
 
-        return new UserLoginResponseDto(user.getUserIdx(),
-                jwtTokenProvider.createToken(requestDto.getEmail()), refreshToken);
+        return new UserLoginResponseDto(user.getUserIdx(), jwtTokenProvider.createToken(requestDto.getEmail()), refreshToken);
+
+//        Optional<User> user = userRepository.findByEmail(requestDto.getEmail());
+//
+//        //입력한 로그인 정보(이메일) 회원조회
+//        if(user.isEmpty())  //유저 존재여부
+//            throw new UserNotFoundException();
+//
+//        boolean pwdCorrect= !(passwordEncoder.matches(requestDto.getPassword(),
+//                user.get().getPassword()));
+//
+//        if (pwdCorrect==true)
+//            throw new LoginFailureException();
+//
+//
+//        String refreshToken = jwtTokenProvider.createRefreshToken();
+//
+//        //redis에 key-value, 만료기간 저장
+//        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey()
+//                        + user.get().getEmail(),
+//                refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
+//
+//        return new UserLoginResponseDto(user.get().getUserIdx(),
+//                jwtTokenProvider.createToken(requestDto.getEmail()), refreshToken);
+
+
     }
 
-    //findUserToken()
+
+
+
+
 
     /**
      * Refresh 토큰으로 토큰 재발행
@@ -85,7 +108,7 @@ public class UserService {
         //KEY값 이용해 Refresh 토큰값 읽어오기
         String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+requestDto.getEmail());
 
-        //refresh 토큰 x or dto에서 불러온 refresh 토큰과 다를경우 예외처리
+        //Redis에서 꺼내온 값이 없거나, 사용자가 가져온 Refresh토큰값이 Redis랑 다르다면 예외처리
         if (findRefreshToken == null || !findRefreshToken.equals(requestDto.getRefreshToken()))
             throw new InvalidRefreshTokenException();
 
