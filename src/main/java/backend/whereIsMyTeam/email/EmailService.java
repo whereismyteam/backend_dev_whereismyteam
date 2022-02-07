@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @EnableAsync
 @RequiredArgsConstructor
 public class EmailService {
-    private final JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender ;
 
     @Async //비동기 처리
     public void send(String email, String authToken) {
