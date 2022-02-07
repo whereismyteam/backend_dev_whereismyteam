@@ -10,10 +10,9 @@ import java.time.LocalDateTime;
 /*
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-*/
-public class EmailAuth {
-/*
+@NoArgsConstructor(access = AccessLevel.PROTECTED)*/
+/*public class EmailAuth {
+
     private static final Long MAX_EXPIRE_TIME = 5L;
 
     @Id
@@ -37,5 +36,5 @@ public class EmailAuth {
 
     public void useToken() {
         this.expired = true;
-    }*/
-}
+    }
+}*/

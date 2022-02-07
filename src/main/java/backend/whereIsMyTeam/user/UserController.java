@@ -76,7 +76,7 @@ public class UserController {
 
     /**
      * 이메일 링크 인증 API
-     * [GET] /users/emails/confirm-email
+     * [GET] /users/emails/confirm-email?email=&authToken=
      * @return SingleResult<String>
      */
     @GetMapping("/emails/confirm-email")

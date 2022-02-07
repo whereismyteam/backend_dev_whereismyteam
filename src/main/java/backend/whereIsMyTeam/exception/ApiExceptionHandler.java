@@ -76,7 +76,7 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
-
+/*
     @ExceptionHandler(value = {EmptyNickNameException.class})
     public ResponseEntity<Object> handleEmptyNickNameException(EmptyNickNameException e) {
 
@@ -89,7 +89,7 @@ public class ApiExceptionHandler {
         );
 
         return new ResponseEntity<>(apiException, httpStatus);
-    }
+    }*/
 
     @ExceptionHandler({BindException.class})
     public  ResponseEntity<Object> handleBindException(BindException e) {
@@ -123,37 +123,18 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler(value = {UserNotFoundException.class})
-    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException e) {
 
+    @ExceptionHandler({UserRoleNotExistException.class})
+    public  ResponseEntity<Object> handleUserRoleNotExistException(UserRoleNotExistException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 
         ApiException apiException = new ApiException(
-                ExceptionMessage.USER_NOT_FOUND_MESSAGE,
+                ExceptionMessage.ROLE_NOT_EXIST_EXCEPTION_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
-
-
-    @ExceptionHandler(value = {LoginFailureException.class})
-    public ResponseEntity<Object> handleLoginFailure(LoginFailureException e) {
-
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-
-        ApiException apiException = new ApiException(
-                ExceptionMessage.LOGIN_FAILURE_MESSAGE,
-                httpStatus,
-                ZonedDateTime.now(ZoneId.of("Z"))
-        );
-
-        return new ResponseEntity<>(apiException, httpStatus);
-    }
-
-
-
-
 
 }
