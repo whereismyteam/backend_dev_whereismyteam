@@ -10,4 +10,10 @@ public class ExceptionMessage {
     public static final String User_NickName_Exists_Exception_MESSAGE= "중복된 닉네임입니다.";
     //public static final String EMPTY_NICKNAME_Exception_MESSAGE= "닉네임을 입력해주세요.";
     public static final String ROLE_NOT_EXIST_EXCEPTION_MESSAGE= "해당 유저의 인증여부를 찾을 수 없습니다.";
+    public static final String EMPTY_NICKNAME_Exception_MESSAGE= "닉네임을 입력해주세요.";
+
+    public static final String USER_NOT_FOUND_MESSAGE = "입력하신 이메일을 찾을 수 없습니다.";
+    public static final String LOGIN_FAILURE_MESSAGE = "입력하신 비밀번호는 잘못된 비밀번호 입니다.";
+
+    public static String INVALID_REFRESH_Token_MESSAGE = "Refresh 토큰이 유효하지 않습니다. ";
 }

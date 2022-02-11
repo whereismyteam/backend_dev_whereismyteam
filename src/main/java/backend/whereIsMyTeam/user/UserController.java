@@ -7,11 +7,7 @@ import backend.whereIsMyTeam.user.dto.UserLoginRequestDto;
 import backend.whereIsMyTeam.user.dto.UserLoginResponseDto;
 import backend.whereIsMyTeam.user.service.ResponseService;
 import backend.whereIsMyTeam.user.service.UserService;
-import backend.whereIsMyTeam.exception.User.EmailAuthTokenNotFoundException;
-import backend.whereIsMyTeam.exception.User.EmptyNickNameException;
-import backend.whereIsMyTeam.exception.User.UserEmailAlreadyExistsException;
 import backend.whereIsMyTeam.user.dto.*;
-import backend.whereIsMyTeam.result.SingleResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
@@ -39,7 +35,7 @@ public class UserController {
     * 로컬 로그인 API
     */
     @PostMapping("/login")
-    public SingleResult<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto requestDto) {
+    public SingleResult<UserLoginResponseDto> login(@RequestBody @Valid UserLoginRequestDto requestDto){
         UserLoginResponseDto responseDto = userService.loginUser(requestDto);
         return responseService.getSingleResult(responseDto);
     }
