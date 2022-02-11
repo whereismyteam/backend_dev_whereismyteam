@@ -170,7 +170,6 @@ public class UserService {
         //toekn 존재하는지 예외처리
         if (redisService.getData(RedisKey.EAUTH.getKey()+requestDto.getEmail()) == null)
             throw new EmailAuthTokenNotFoundException();
-
         //이메일 존재하는지 예외처리
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
         //이메일 인증 받은 정보로 변환
