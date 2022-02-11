@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import backend.whereIsMyTeam.security.dto.TokenResponseDto;
 import org.springframework.stereotype.Service;
@@ -135,12 +136,6 @@ public class UserService {
     @Transactional
     public UserRegisterResponseDto registerUser(UserRegisterRequestDto requestDto) {
 
-        // String authToken = UUID.randomUUID().toString();
-        //유효 시간 5분
-        //key+이메일, 전달 데이터로
-        // redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
-
-        //이메일과 닉네임 중복을 처리한 후 들어오는 api라 따로 관련 validation 처리 진행x
         //User 객체 저장
         User user = userRepository.save(
                 User.builder()
@@ -151,8 +146,6 @@ public class UserService {
                         .provider(null)
                         .build());
 
-        //이메일 전송
-        // emailService.send(requestDto.getEmail(), authToken);
 
         return UserRegisterResponseDto.builder()
                 .userIdx(user.getUserIdx())
@@ -172,10 +165,7 @@ public class UserService {
             throw new EmailAuthTokenNotFoundException();
         //이메일 존재하는지 예외처리
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
-        //이메일 인증 받은 정보로 변환
-       // Role role = userRepository.findByUserIdx(user.getUserIdx()).orElseThrow(UserRoleNotExistException::new);
-       // user.changeRole();
-       // user.changeEmailAuth();
+
         user.emailVerifiedSuccess(Collections.singletonList(Role.ROLE_AUTH));
         //둘다 존재하면 redis 서버 데이터 지움
         redisService.deleteData(RedisKey.EAUTH.getKey()+requestDto.getEmail());
@@ -200,11 +190,6 @@ public class UserService {
         if (userRepository.findByNickName(requestDto.getNickName()).isPresent())
             throw new UserNickNameAlreadyExistsException();
     }
-    /*public void confirmNewNickName(String nickName) {
-        //예외 런타임오류 상속하는 거 맞는지
-        if (userRepository.findByNickName(nickName).isPresent())
-            throw new UserNickNameAlreadyExistsException();
-    }*/
 
     /**
      * 이메일 인증 링크 전송
@@ -223,6 +208,47 @@ public class UserService {
         redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
         //이메일 전송
         emailService.send(requestDto.getEmail(), authToken);
+    }
+
+    /**
+     * 로그아웃
+     * @param requestDto
+     */
+    public void logout (UserLogoutRequestDto requestDto) {
+
+        //Access Token 유효한지 검증
+        if (jwtTokenProvider.validateTokenExpiration(requestDto.getAccessToken())) {
+         //   throw new InvalidAccessTokenException();
+        }
+
+        // Access Token 에서 User email 가져오기
+        Authentication authentication = jwtTokenProvider.getAuthentication(requestDto.getAccessToken());
+
+        //userIdx와 access token 이메일 같은지 검증
+        User user = userRepository.findByIdx(requestDto.getUserIdx()).orElseThrow(UserNotFoundException::new);
+        if(user.getEmail().equals(authentication.getName())){
+            throw new UserNotExistException();
+        }
+        //KEY값 이용해 Refresh 토큰값 읽어오기
+        String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+user.getEmail());
+
+        //Redis에서 꺼내온 값이 없음 or 사용자가 가져온 Refresh토큰값이 Redis랑 다르다-> 예외처리
+        //유효한 refresh 토큰이 아님
+        if (findRefreshToken == null || !findRefreshToken.equals(requestDto.getRefreshToken()))
+            throw new InvalidRefreshTokenException();
+        else //유효한 refresh 토큰 존재하므로 삭제 처리
+        {
+            redisService.deleteData(RedisKey.REFRESH.getKey()+user.getEmail());
+        }
+
+        //해당 Access Token 유효시간 가지고 와서 BlackList 로 저장하기
+        // Access Token 에서 User email 가져오기
+        Authentication authentication2 = jwtTokenProvider.getAuthentication(requestDto.getRefreshToken());
+
+       // Long expiration = jwtTokenProvider.ex(requestDto.getAccessToken());
+
+        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey() + user.getEmail(),"logout", JwtTokenProvider.TOKEN_VALID_TIME);
+
     }
 
 }

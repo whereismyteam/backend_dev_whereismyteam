@@ -117,16 +117,17 @@ public class UserController {
         return responseService.getSingleResult("사용 가능한 닉네임입니다.");
     }
 
-   /* @GetMapping("/nickNames/{nickName}")
-    public SingleResult<String> confirmNewNickName( @PathVariable String nickName) {
-        //빈 값 들어오는 거 오류 처리
-        if(nickName==null)
-            throw new EmptyNickNameException();
+    /**
+     * 로그아웃 API
+     * [POST] /users/logout
+     * @return SingleResult<String>
+     */
+    @GetMapping("/logout")
+    public SingleResult<String> logout ( @Valid @ModelAttribute UserLogoutRequestDto requestDto) {
 
-        userService.confirmNewNickName(nickName);
+        userService.logout(requestDto);
 
-        return responseService.getSingleResult("사용 가능한 닉네임 입니다.");
-    }*/
-
+        return responseService.getSingleResult("로그아웃 됐습니다.");
+    }
 
 }
