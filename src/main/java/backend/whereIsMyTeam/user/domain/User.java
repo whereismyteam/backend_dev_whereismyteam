@@ -23,56 +23,62 @@ import static java.util.Collections.singletonList;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(nullable = false, unique = true)
-        private Long userIdx;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, unique = true)
+    private Long userIdx;
 
-        @Column(nullable = false, length=2)
-        @ColumnDefault("'Y'")
-        private String status;
+    @Column(nullable = false, length=2)
+    @ColumnDefault("'Y'")
+    private String status;
 
-        @Column(nullable = false)
-        @ColumnDefault("1")
-        private Long profileImgIdx;
+    @Column(nullable = false)
+    @ColumnDefault("1")
+    private Long profileImgIdx;
 
-        @Column(nullable = false)
-        private String email;
+    @Column(nullable = false)
+    private String email;
 
-        @Column(nullable = false, length=255)
-        private String password;
+    @Column(nullable = false, length=255)
+    private String password;
 
-        @Column(nullable = false)
-        private String nickName;
+    @Column(nullable = false)
+    private String nickName;
 
-         @Column(nullable = false)
-         @ColumnDefault("false")
-        private Boolean emailAuth;
-
-
-        @ElementCollection(fetch = FetchType.LAZY)
-        @Enumerated(EnumType.STRING)
-        private List<Role> roles = new ArrayList<>();
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private Boolean emailAuth;
 
 
-        //String provider
-        @Builder
-        public User(String email, String password, String nickName,List<Role> roles) {
-            //this.status=status;
-            this.email = email;
-            this.password = password;
-            this.nickName = nickName;
-            this.roles = roles;
-        }
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Enumerated(EnumType.STRING)
+    private List<Role> roles = new ArrayList<>();
 
-        public void addRole(Role role) {
-            this.roles.add(role);
-        }
+    @Column
+    private String provider;
 
-        public void changeRole() { this.roles.set(this.getUserIdx().intValue(),Role.ROLE_AUTH); }
-        public void changeEmailAuth() { this.emailAuth=true;}
-        public void emailVerifiedSuccess() {
-            this.emailAuth = true;
-        }
+    //String provider
+    @Builder
+    public User(String email, String password, String provider, String nickName,List<Role> roles) {
+        //this.status=status;
+        this.email = email;
+        this.password = password;
+        this.nickName = nickName;
+        this.provider = provider;
+        //this.emailAuth = emailAuth;
+        //this.profileImgIdx=profileImgIdx;
+        this.roles = roles;
+    }
+
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
+
+    //public void changeRole() { this.roles.set(this.getUserIdx().intValue(),Role.ROLE_AUTH); }
+    //public void changeEmailAuth() { this.emailAuth=true;}
+    public void emailVerifiedSuccess(List<Role> rolee) {
+        this.roles=rolee;
+        this.emailAuth = true;
+    }
 
 }
