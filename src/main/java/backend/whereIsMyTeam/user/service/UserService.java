@@ -168,9 +168,7 @@ public class UserService {
     @Transactional
     public void confirmEmail(EmailAuthRequestDto requestDto) {
         //toekn 존재하는지 예외처리
-       // if (redisService.getData(RedisKey.EAUTH.getKey()+requestDto.getEmail()) == null)
-       //     throw new EmailAuthTokenNotFoundException();
-         if (redisService.getData(requestDto.getAuthToken()) == null)
+        if (redisService.getData(RedisKey.EAUTH.getKey()+requestDto.getEmail()) == null)
             throw new EmailAuthTokenNotFoundException();
         //이메일 존재하는지 예외처리
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
