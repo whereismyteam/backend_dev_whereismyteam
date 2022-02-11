@@ -252,24 +252,25 @@ public class UserService {
         //Refresh토큰 발급
         String refreshToken = jwtTokenProvider.createRefreshToken();
 
-        //Redis에 '소셜로그인 유저' 토큰 저장
+        //Redis에 '소셜로그인 유저'의 토큰 저장 및 만료기간 설정
         System.out.println("REFRESH 에서 어떤 KEY가 들어가나요"+RedisKey.REFRESH.getKey()+ " " +refreshToken);
         redisService.setDataWithExpiration(RedisKey.REFRESH.getKey()+refreshToken, refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
 
         Optional<User> findUser = userRepository.findByEmailAndProvider(profile.getEmail(), provider);
 
-        //해당 '이메일'로 회원가입이 되어있는지 여부확인.
+        //이 이메일로 처음 로그인 했는지 여부 확인
         if (findUser.isPresent()) {
             User user = findUser.get();
 
             //단순 Access토큰 및 Refresh 토큰 발급
-            return new UserLoginResponseDto(user.getUserIdx(),
-                    jwtTokenProvider.createToken(findUser.get().getEmail()), refreshToken);
+            return new UserLoginResponseDto(user.getUserIdx(), jwtTokenProvider.createToken(findUser.get().getEmail())
+                    , refreshToken);
         } else {
+            //첫 소셜 로그인 => DB에 회원등록
             User saveUser = saveUser(profile, provider);
 
-            return new UserLoginResponseDto(saveUser.getUserIdx(),
-                    jwtTokenProvider.createToken(saveUser.getEmail()), refreshToken);
+            return new UserLoginResponseDto(saveUser.getUserIdx(), jwtTokenProvider.createToken(saveUser.getEmail())
+                    , refreshToken);
         }
     }
 
