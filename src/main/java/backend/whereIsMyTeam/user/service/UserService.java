@@ -3,6 +3,8 @@ package backend.whereIsMyTeam.user.service;
 import backend.whereIsMyTeam.email.EmailService;
 import backend.whereIsMyTeam.exception.Jwt.InvalidRefreshTokenException;
 import backend.whereIsMyTeam.exception.User.*;
+import backend.whereIsMyTeam.oauth.ProfileDto;
+import backend.whereIsMyTeam.oauth.ProviderService;
 import backend.whereIsMyTeam.redis.domain.RedisKey;
 import backend.whereIsMyTeam.redis.RedisService;
 import backend.whereIsMyTeam.redis.dto.ReIssueRequestDto;
@@ -11,6 +13,7 @@ import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.Role;
 import backend.whereIsMyTeam.user.domain.User;
 import backend.whereIsMyTeam.user.dto.*;
+import com.nimbusds.oauth2.sdk.token.AccessToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import javax.validation.Valid;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -43,11 +47,14 @@ public class UserService {
 
     private final EmailService emailService;
 
+    private final ProviderService providerService;
+
 
     /*
     * LoginRequestDto로 들어온 값을 통해 로그인 진행
     * 로컬 로그인
-     */
+    * @param requestDto
+    */
     @Transactional
     public UserLoginResponseDto loginUser(@RequestBody @Valid UserLoginRequestDto requestDto) {
         //Email로 실제 저장된 유저인지 확인
@@ -223,6 +230,67 @@ public class UserService {
         redisService.setDataWithExpiration(RedisKey.EAUTH.getKey()+requestDto.getEmail(), authToken, 60*5L);
         //이메일 전송
         emailService.send(requestDto.getEmail(), authToken);
+    }
+
+    /**
+     * 소셜 로그인 구현
+     * @param code
+     * @param provider
+     * @return
+     */
+    @Transactional
+    public UserLoginResponseDto loginUserByProvider(String code, String provider) {
+
+        //Authentication 코드로부터 Access 토큰 발급 받음
+        AccessToken accessToken = providerService.getAccessToken(code, provider);
+        System.out.println("이것이 Access 토큰일까,, "
+                + accessToken.getValue());
+
+        //Access토큰으로 '이메일 정보' 요청
+        ProfileDto profile = providerService.getProfile(accessToken.getValue(), provider);
+
+        //Refresh토큰 발급
+        String refreshToken = jwtTokenProvider.createRefreshToken();
+
+        //Redis에 '소셜로그인 유저'의 토큰 저장 및 만료기간 설정
+        System.out.println("REFRESH 에서 어떤 KEY가 들어가나요"+RedisKey.REFRESH.getKey()+ " " +refreshToken);
+        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey()+refreshToken, refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
+
+        Optional<User> findUser = userRepository.findByEmailAndProvider(profile.getEmail(), provider);
+
+        //이 이메일로 처음 로그인 했는지 여부 확인
+        if (findUser.isPresent()) {
+            User user = findUser.get();
+
+            //단순 Access토큰 및 Refresh 토큰 발급
+            return new UserLoginResponseDto(user.getUserIdx(), jwtTokenProvider.createToken(findUser.get().getEmail())
+                    , refreshToken);
+        } else {
+            //첫 소셜 로그인 => DB에 회원등록
+            User saveUser = saveUser(profile, provider);
+
+            return new UserLoginResponseDto(saveUser.getUserIdx(), jwtTokenProvider.createToken(saveUser.getEmail())
+                    , refreshToken);
+        }
+    }
+
+
+    /**
+     * 소셜 로그인에서 회원가입
+     * @param profile
+     * @param provider
+     * @return
+     */
+    private User saveUser(ProfileDto profile, String provider) {
+        User user = User.builder()
+                .email(profile.getEmail())
+                .password(null)
+                .provider(provider)
+                .roles(Collections.singletonList(Role.ROLE_AUTH))
+                .build();
+
+        User saveUser = userRepository.save(user);
+        return saveUser;
     }
 
 }

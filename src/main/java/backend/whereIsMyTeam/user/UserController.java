@@ -1,5 +1,6 @@
 package backend.whereIsMyTeam.user;
 
+import backend.whereIsMyTeam.oauth.AuthCode;
 import backend.whereIsMyTeam.redis.dto.ReIssueRequestDto;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.dto.TokenResponseDto;
@@ -40,9 +41,26 @@ public class UserController {
         return responseService.getSingleResult(responseDto);
     }
 
-    /*
-    * 'Refresh 토큰' 이용해 토큰 재발급 API
-    */
+    /**
+     * 소셜 로그인(구글) API
+     *
+     *
+     *
+     **/
+    @PostMapping("/login/{provider}")
+    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody AuthCode authCode,
+                                                            @PathVariable String provider) {
+
+        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode.getCode(), provider);
+        return responseService.getSingleResult(responseDto);
+    }
+
+
+    /**
+     * 'Refresh 토큰' 이용해 토큰 재발급 API
+     * [POST] /users/newAccessToken
+     * @return SingleResult<TokenResponseDto>
+     */
     @PostMapping("/newAccessToken")
     public SingleResult<TokenResponseDto> reIssue(@RequestBody ReIssueRequestDto requestDto) {
         TokenResponseDto responseDto = userService.reIssue(requestDto);

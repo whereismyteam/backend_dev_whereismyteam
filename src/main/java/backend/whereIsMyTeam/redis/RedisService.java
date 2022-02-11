@@ -12,8 +12,10 @@ import java.time.LocalDateTime;
 @Transactional
 @RequiredArgsConstructor
 public class RedisService {
+    
     private final RedisTemplate redisTemplate;
 
+    //key를 통해 value 값 얻기
     public String getData(String key) {
         return (String) redisTemplate.opsForValue().get(key);
     }
@@ -25,7 +27,8 @@ public class RedisService {
         Duration expireDuration = Duration.ofSeconds(time);
         redisTemplate.opsForValue().set(key, value, expireDuration);
     }
-
+    
+    //key를 통해 key-value 삭제
     public void deleteData(String key) {
         redisTemplate.delete(key);
     }
