@@ -181,12 +181,11 @@ public class UserService {
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
         //이메일 인증 받은 정보로 변환
        // Role role = userRepository.findByUserIdx(user.getUserIdx()).orElseThrow(UserRoleNotExistException::new);
-        user.changeRole();
-        user.changeEmailAuth();
+       // user.changeRole();
+       // user.changeEmailAuth();
+        user.emailVerifiedSuccess(Collections.singletonList(Role.ROLE_AUTH));
         //둘다 존재하면 redis 서버 데이터 지움
         redisService.deleteData(RedisKey.EAUTH.getKey()+requestDto.getEmail());
-
-        user.emailVerifiedSuccess();
     }
 
     /**
