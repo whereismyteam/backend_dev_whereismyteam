@@ -1,7 +1,6 @@
 package backend.whereIsMyTeam.security;
 
 import backend.whereIsMyTeam.exception.User.UserNotFoundException;
-import backend.whereIsMyTeam.security.MemberDetails;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
