@@ -148,6 +148,7 @@ public class UserService {
                         .password(passwordEncoder.encode(requestDto.getPassword()))
                         .nickName(requestDto.getNickName())
                         .roles(Collections.singletonList(Role.ROLE_NOTAUTH))
+                        .provider(null)
                         .build());
 
         //이메일 전송
@@ -167,18 +168,19 @@ public class UserService {
     @Transactional
     public void confirmEmail(EmailAuthRequestDto requestDto) {
         //toekn 존재하는지 예외처리
-        if (redisService.getData(RedisKey.EAUTH.getKey()+requestDto.getEmail()) == null)
+       // if (redisService.getData(RedisKey.EAUTH.getKey()+requestDto.getEmail()) == null)
+       //     throw new EmailAuthTokenNotFoundException();
+         if (redisService.getData(requestDto.getAuthToken()) == null)
             throw new EmailAuthTokenNotFoundException();
         //이메일 존재하는지 예외처리
         User user = userRepository.findByEmail(requestDto.getEmail()).orElseThrow(UserNotExistException::new);
         //이메일 인증 받은 정보로 변환
        // Role role = userRepository.findByUserIdx(user.getUserIdx()).orElseThrow(UserRoleNotExistException::new);
-        user.changeRole();
-        user.changeEmailAuth();
+       // user.changeRole();
+       // user.changeEmailAuth();
+        user.emailVerifiedSuccess(Collections.singletonList(Role.ROLE_AUTH));
         //둘다 존재하면 redis 서버 데이터 지움
         redisService.deleteData(RedisKey.EAUTH.getKey()+requestDto.getEmail());
-
-        user.emailVerifiedSuccess();
     }
 
     /**
