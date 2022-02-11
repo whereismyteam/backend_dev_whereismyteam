@@ -18,6 +18,7 @@ import static java.util.Collections.singletonList;
 
 @Entity
 @Getter
+@DynamicInsert
 @Table(name = "USERS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
@@ -53,17 +54,19 @@ public class User extends BaseTimeEntity {
         @Enumerated(EnumType.STRING)
         private List<Role> roles = new ArrayList<>();
 
+        @Column
+        private String provider;
 
         //String provider
         @Builder
-        public User(String email, String password, String nickName,List<Role> roles) {
+        public User(String email, String password, String provider, String nickName,List<Role> roles) {
             //this.status=status;
             this.email = email;
             this.password = password;
             this.nickName = nickName;
-            //this.provider = provider;
-            this.emailAuth = emailAuth;
-            this.profileImgIdx=profileImgIdx;
+            this.provider = provider;
+            //this.emailAuth = emailAuth;
+            //this.profileImgIdx=profileImgIdx;
             this.roles = roles;
         }
 
