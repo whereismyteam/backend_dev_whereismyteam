@@ -1,6 +1,6 @@
 package backend.whereIsMyTeam.user;
 
-import backend.whereIsMyTeam.oauth.AuthCode;
+//import backend.whereIsMyTeam.oauth.AuthCode;
 import backend.whereIsMyTeam.redis.dto.ReIssueRequestDto;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.dto.TokenResponseDto;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Slf4j
@@ -36,8 +37,9 @@ public class UserController {
     * 로컬 로그인 API
     */
     @PostMapping("/login")
-    public SingleResult<UserLoginResponseDto> login(@RequestBody @Valid UserLoginRequestDto requestDto){
-        UserLoginResponseDto responseDto = userService.loginUser(requestDto);
+    public SingleResult<UserLoginResponseDto> login(@RequestBody @Valid UserLoginRequestDto requestDto
+    , HttpServletResponse response){
+        UserLoginResponseDto responseDto = userService.loginUser(requestDto,response);
         return responseService.getSingleResult(responseDto);
     }
 
@@ -47,22 +49,24 @@ public class UserController {
      *
      *
      **/
-    @PostMapping("/login/{provider}")
-    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody AuthCode authCode,
-                                                            @PathVariable String provider) {
-
-        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode.getCode(), provider);
-        return responseService.getSingleResult(responseDto);
-    }
+//    @PostMapping("/login/{provider}")
+//    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody AuthCode authCode,
+//                                                            @PathVariable String provider) {
+//
+//        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode.getCode(), provider);
+//        return responseService.getSingleResult(responseDto);
+//    }
 
 
     /**
      * 'Refresh 토큰' 이용해 토큰 재발급 API
      * [POST] /users/newAccessToken
+     * param
      * @return SingleResult<TokenResponseDto>
      */
     @PostMapping("/newAccessToken")
-    public SingleResult<TokenResponseDto> reIssue(@RequestBody ReIssueRequestDto requestDto) {
+    public SingleResult<TokenResponseDto> reIssue(
+            @RequestBody ReIssueRequestDto requestDto ){
         TokenResponseDto responseDto = userService.reIssue(requestDto);
         return responseService.getSingleResult(responseDto);
     }

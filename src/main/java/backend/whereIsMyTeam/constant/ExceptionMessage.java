@@ -16,4 +16,5 @@ public class ExceptionMessage {
     public static final String LOGIN_FAILURE_MESSAGE = "입력하신 비밀번호는 잘못된 비밀번호 입니다.";
 
     public static String INVALID_REFRESH_Token_MESSAGE = "Refresh 토큰이 유효하지 않습니다. ";
+    public static String ACCESS_DENIED_EXCEPTION_MESSAGE = "Access 토큰이 만료되지 않았습니다.";
 }
