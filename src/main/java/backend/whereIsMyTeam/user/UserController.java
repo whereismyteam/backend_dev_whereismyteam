@@ -1,11 +1,14 @@
 package backend.whereIsMyTeam.user;
 
 //import backend.whereIsMyTeam.oauth.AuthCode;
-import backend.whereIsMyTeam.redis.dto.ReIssueRequestDto;
+import backend.whereIsMyTeam.exception.Jwt.*;
+import backend.whereIsMyTeam.exception.User.UserNotExistException;
+import backend.whereIsMyTeam.oauth.AuthCode;
+import backend.whereIsMyTeam.redis.RedisService;
+import backend.whereIsMyTeam.redis.domain.RedisKey;
+import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
+import backend.whereIsMyTeam.user.domain.User;
 import backend.whereIsMyTeam.result.SingleResult;
-import backend.whereIsMyTeam.security.dto.TokenResponseDto;
-import backend.whereIsMyTeam.user.dto.UserLoginRequestDto;
-import backend.whereIsMyTeam.user.dto.UserLoginResponseDto;
 import backend.whereIsMyTeam.user.service.ResponseService;
 import backend.whereIsMyTeam.user.service.UserService;
 import backend.whereIsMyTeam.user.dto.*;
@@ -14,11 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -30,44 +30,63 @@ public class UserController {
 
     private final UserService userService;
     private final ResponseService responseService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RedisService redisService;
+    private final UserRepository userRepository;
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    /*
+    /**
     * 로컬 로그인 API
-    */
+     *
+     *
+    **/
     @PostMapping("/login")
-    public SingleResult<UserLoginResponseDto> login(@RequestBody @Valid UserLoginRequestDto requestDto
-    , HttpServletResponse response){
-        UserLoginResponseDto responseDto = userService.loginUser(requestDto,response);
+    public SingleResult<UserLoginResponseDto> login(@RequestBody @Valid UserLoginRequestDto requestDto){
+        UserLoginResponseDto responseDto = userService.loginUser(requestDto);
         return responseService.getSingleResult(responseDto);
     }
 
     /**
      * 소셜 로그인(구글) API
-     *
-     *
+     * [POST]  /users"/login/:provider
      *
      **/
-//    @PostMapping("/login/{provider}")
-//    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody AuthCode authCode,
-//                                                            @PathVariable String provider) {
-//
-//        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode.getCode(), provider);
-//        return responseService.getSingleResult(responseDto);
-//    }
+    @PostMapping("/login/{provider}")
+    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody AuthCode authCode, @PathVariable String provider) {
+        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode.getCode(), provider);
+        return responseService.getSingleResult(responseDto);
+    }
 
 
     /**
-     * 'Refresh 토큰' 이용해 토큰 재발급 API
+     * Refresh 토큰 이용해 Access 토큰 재발급 API
      * [POST] /users/newAccessToken
      * param
      * @return SingleResult<TokenResponseDto>
      */
     @PostMapping("/newAccessToken")
-    public SingleResult<TokenResponseDto> reIssue(
-            @RequestBody ReIssueRequestDto requestDto ){
-        TokenResponseDto responseDto = userService.reIssue(requestDto);
+    public SingleResult<ReIssueResponseDto> reIssue(HttpServletRequest header , @Valid @RequestBody ReIssueRequestDto requestDto ){
+
+        //리프레시 토큰 null 아닌지 검증
+        String refreshToken=jwtTokenProvider.resolveRefreshToken(header);
+        if(refreshToken==null)
+            throw new RefreshNotExistException();
+
+        //리프레시 토큰 유저 유효 한지 검증
+        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+        String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+user.getEmail());
+        if (findRefreshToken == null || !findRefreshToken.equals(refreshToken))
+            throw new InvalidRefreshTokenException();
+
+        //리프레시 토큰 expiration 유효한지 검증, 유효 o->service단에서 access 토큰 재발급, 유효 x->오류처리(로그인 해주세요)
+        if(!jwtTokenProvider.validateTokenExpiration(refreshToken)){
+            throw new GoToLoginExcepttion();
+        }
+
+        //access 토큰 재발행
+        ReIssueResponseDto responseDto = userService.reIssue(requestDto);
+
         return responseService.getSingleResult(responseDto);
     }
 
@@ -81,6 +100,7 @@ public class UserController {
     public SingleResult<UserRegisterResponseDto> signup ( @Valid @RequestBody UserRegisterRequestDto requestDto) {
         log.info("request = {}, {}, {}", requestDto.getEmail(), requestDto.getPassword(),requestDto.getNickName());
         UserRegisterResponseDto responseDto = userService.registerUser(requestDto);
+
         return responseService.getSingleResult(responseDto);
     }
 
@@ -92,6 +112,7 @@ public class UserController {
     @PostMapping("/emails/send-email")
     public SingleResult<String> sendEmail (@Valid @RequestBody NewEmailRequestDto requestDto) {
         userService.sendEmail(requestDto);
+
         return responseService.getSingleResult("메일이 전송됐습니다.");
     }
 
@@ -104,6 +125,7 @@ public class UserController {
     @GetMapping("/emails/confirm-email")
     public SingleResult<String> confirmEmail( @Valid @ModelAttribute EmailAuthRequestDto requestDto) {
         userService.confirmEmail(requestDto);
+
         return responseService.getSingleResult("인증이 완료됐습니다.");
     }
 
@@ -114,10 +136,6 @@ public class UserController {
      */
     @GetMapping("/emails")
     public SingleResult<String> confirmNewEmail(@Valid @ModelAttribute NewEmailRequestDto requestDto) {
-        //이메일 형식 처리 오류 여기서
-        //빈 값 들어오는 거 오류 처리
-       // if(requestDto.getEmail()==null)
-       //     throw new EmptyEmailException();
         userService.confirmNewEmail(requestDto);
 
         return responseService.getSingleResult("사용 가능한 이메일입니다.");
@@ -130,10 +148,6 @@ public class UserController {
      */
     @GetMapping("/nickNames")
     public SingleResult<String> confirmNewNickName( @Valid @ModelAttribute NewNickNameRequestDto requestDto) {
-        //빈 값 들어오는 거 오류 처리
-        //if(requestDto.getNickName()==null)
-        //    throw new EmptyNickNameException();
-
         userService.confirmNewNickName(requestDto);
 
         return responseService.getSingleResult("사용 가능한 닉네임입니다.");
@@ -144,10 +158,16 @@ public class UserController {
      * [POST] /users/logout
      * @return SingleResult<String>
      */
-    @GetMapping("/logout")
-    public SingleResult<String> logout ( @Valid @ModelAttribute UserLogoutRequestDto requestDto) {
+    @PostMapping("/logout")
+    public SingleResult<String> logout ( HttpServletRequest header, @Valid @RequestBody UserLogoutRequestDto requestDto) {
 
-        userService.logout(requestDto);
+        //access token 검증
+        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+        jwtTokenProvider.validateAccess(header, user.getEmail());
+
+
+        //access 토큰 문제 없으므로 로그아웃 진행
+        userService.logout(header,requestDto);
 
         return responseService.getSingleResult("로그아웃 됐습니다.");
     }
