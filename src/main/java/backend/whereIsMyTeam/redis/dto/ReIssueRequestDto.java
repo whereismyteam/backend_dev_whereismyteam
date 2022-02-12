@@ -14,6 +14,8 @@ public class ReIssueRequestDto {
     @NotBlank(message = "이메일을 입력해주세요.")
     @Email(message = "이메일 형식을 맞춰주세요.")
     String email;
+    @NotBlank
+    String accessToken;
     @NotBlank(message = "refreshToken을 입력해주세요.")
     String refreshToken;
 }
