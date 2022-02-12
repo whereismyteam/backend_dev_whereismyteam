@@ -1,6 +1,7 @@
 package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
+import backend.whereIsMyTeam.exception.Jwt.AccessDeniedException;
 import backend.whereIsMyTeam.exception.Jwt.InvalidRefreshTokenException;
 import backend.whereIsMyTeam.exception.User.*;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -179,4 +180,16 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
+    @ExceptionHandler({AccessDeniedException.class})
+    public  ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.ACCESS_DENIED_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
 }

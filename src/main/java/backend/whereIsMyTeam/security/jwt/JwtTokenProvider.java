@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Base64;
 import java.util.Date;
 
@@ -34,6 +35,7 @@ public class JwtTokenProvider {
         secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes());
     }
 
+    //Access 토큰 생성
     public String createToken(String email) {
         Claims claims = Jwts.claims().setSubject(email);    //토큰의 키=email(중복x)
         Date now = new Date();
@@ -46,6 +48,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    //Refresh 토큰 생성
     public String createRefreshToken() {
         Date now = new Date();
 
@@ -66,24 +69,52 @@ public class JwtTokenProvider {
     public String getUserEmail(String token) {
         try {
             return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+            //return !claims.getBody().getExpiration().before(new Date());
         } catch(ExpiredJwtException e) {
             return e.getClaims().getSubject();
         }
     }
 
-    // 토큰을 이용하기 위해 Header에서 꺼내옴
-    public String resolveToken(HttpServletRequest req) {
-
-        return req.getHeader("X-AUTH-TOKEN");
+    /**
+     *  Request의 Header에서 'Access 토큰 값' 가져옴
+    * (클라) "authorization" : "token"
+    **/
+    public String resolveToken(HttpServletRequest request) {
+        if(request.getHeader("authorization") != null )
+            return request.getHeader("authorization").substring(7);
+        return null;
     }
 
-    //토큰이 만료되었는지 확인
+    /**
+    * Request의 Header에서 'Refresh 토큰 값'을 가져옵니다.
+    * 클라이언트에서 'refreshToken' : value로 보내줌
+    **/
+    public String resolveRefreshToken(HttpServletRequest request) {
+        if(request.getHeader("refreshToken") != null )
+            return request.getHeader("refreshToken").substring(7);
+        return null;
+    }
+
+
+    //토큰의 유효성 검증 + 만료일자 확인
     public boolean validateTokenExpiration(String token) {
         try {
-            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
-            return true;
+            Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+            return !claims.getBody().getExpiration().before(new Date());
         } catch (Exception e) {
             return false;
         }
     }
+
+    // Access 토큰 헤더 설정
+    public void setHeaderAccessToken(HttpServletResponse response, String accessToken) {
+        response.setHeader("authorization", "bearer "+ accessToken);
+    }
+
+    // Refresh 토큰 헤더 설정
+    public void setHeaderRefreshToken(HttpServletResponse response, String refreshToken) {
+        response.setHeader("refreshToken", "bearer "+ refreshToken);
+    }
+
+
 }
