@@ -29,7 +29,7 @@ public class ProviderService {
 
     private final OAuthRequestFactory oAuthRequestFactory;
 
-    //소셜서비스에 Profile 요청하기
+    //받아온 토큰으로 소셜서비스에 Profile 요청하기
     public ProfileDto getProfile(String accessToken  ,String provider) throws CommunicationException {
 
         HttpHeaders httpHeaders = new HttpHeaders();

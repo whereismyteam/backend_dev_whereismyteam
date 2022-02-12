@@ -227,35 +227,29 @@ public class UserService {
     public UserLoginResponseDto loginUserByProvider(String code, String provider) {
 
         //Authentication 코드로부터 Access 토큰 발급 받음
-        AccessToken accessToken = providerService.getAccessToken(code, provider);
-        System.out.println("이것이 Access 토큰일까,, "
-                + accessToken.getValue());
+        AccessToken oauthAccessToken = providerService.getAccessToken(code, provider);
+       // System.out.println("이것이 Access 토큰일까,, "+ accessToken.getValue());
 
         //Access토큰으로 '이메일 정보' 요청
-        ProfileDto profile = providerService.getProfile(accessToken.getValue(), provider);
+        ProfileDto profile = providerService.getProfile(oauthAccessToken.getValue(), provider);
 
-        //Refresh토큰 발급
+        //9t 서버 Refresh토큰 발급
         String refreshToken = jwtTokenProvider.createRefreshToken();
+        //refresh 토큰 set data+redis에 저장
+        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey() +profile.getEmail(), refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
 
-        //Redis에 '소셜로그인 유저'의 토큰 저장 및 만료기간 설정
-        System.out.println("REFRESH 에서 어떤 KEY가 들어가나요"+RedisKey.REFRESH.getKey()+ " " +refreshToken);
-        redisService.setDataWithExpiration(RedisKey.REFRESH.getKey()+refreshToken, refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
-
-        Optional<User> findUser = userRepository.findByEmailAndProvider(profile.getEmail(), provider);
+        //9t 서버 access토큰 발급
+        String accessToken=jwtTokenProvider.createToken(profile.getEmail());
 
         //이 이메일로 처음 로그인 했는지 여부 확인
-        if (findUser.isPresent()) {
+        Optional<User> findUser = userRepository.findByEmailAndProvider(profile.getEmail(), provider);
+        if (findUser.isPresent()) { //이미 존재하는 회원
             User user = findUser.get();
-
-            //단순 Access토큰 및 Refresh 토큰 발급
-            return new UserLoginResponseDto(user.getUserIdx(), jwtTokenProvider.createToken(findUser.get().getEmail())
-                    , refreshToken);
+            return new UserLoginResponseDto(user.getUserIdx(),accessToken,refreshToken );
         } else {
             //첫 소셜 로그인 => DB에 회원등록
             User saveUser = saveUser(profile, provider);
-
-            return new UserLoginResponseDto(saveUser.getUserIdx(), jwtTokenProvider.createToken(saveUser.getEmail())
-                    , refreshToken);
+            return new UserLoginResponseDto(saveUser.getUserIdx(),accessToken, refreshToken);
         }
     }
 
@@ -267,15 +261,21 @@ public class UserService {
      * @return
      */
     private User saveUser(ProfileDto profile, String provider) {
+        //이메일 숫자로 변경해서 닉네임으로 사용
+        //완전하게 중복 피한다는 보장 x
+        String e= profile.getEmail();;
+        Long num=Long.parseLong(e);
+
         User user = User.builder()
                 .email(profile.getEmail())
                 .password(null)
-                .provider(provider)
+                .nickName("팀원"+e)
                 .roles(Collections.singletonList(Role.ROLE_AUTH))
+                .provider(provider)
                 .build();
 
-        User saveUser = userRepository.save(user);
-        return saveUser;
+        User save = userRepository.save(user);
+        return save;
     }
 
     /**
@@ -293,7 +293,7 @@ public class UserService {
         Authentication authentication = jwtTokenProvider.getAuthentication(requestDto.getAccessToken());
 
         //userIdx와 access token 이메일 같은지 검증
-        User user = userRepository.findByIdx(requestDto.getUserIdx()).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotFoundException::new);
         if(user.getEmail().equals(authentication.getName())){
             throw new UserNotExistException();
         }

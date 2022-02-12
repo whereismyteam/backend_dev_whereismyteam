@@ -2,6 +2,7 @@ package backend.whereIsMyTeam.oauth.OAuthRequest;
 
 import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 
@@ -26,23 +27,25 @@ public class OAuthRequestFactory {
     }
 
     public String getProfileUrl() {
-        //if (provider.equals("google"))
-        return googleInfo.getGoogleProfileUrl();
-
+      //  if (provider.equals("google"))
+         return googleInfo.getGoogleProfileUrl();
     }
 
     @Getter
     @Component
     static class GoogleInfo {
-        @Value("${spring.social.google.client_id}")
-        String googleClientId;
-        @Value("${spring.social.google.redirect}")
-        String googleRedirect;
-        @Value("${spring.social.google.client_secret}")
-        String googleClientSecret;
-        @Value("${spring.social.google.url.token}")
+        @Value("${spring.security.oauth2.client.registration.google.client-id}")
+        private String googleClientId;
+
+        @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+        private String googleClientSecret;
+
+        @Value("${spring.security.oauth2.client.registration.google.redirect}")
+        private String googleRedirect;
+
+        @Value("${spring.security.oauth2.client.registration.google.url.token}")
         private String googleTokenUrl;
-        @Value("${spring.social.google.url.profile}")
+        @Value("${spring.security.oauth2.client.registration.google.url.profile}")
         private String googleProfileUrl;
     }
 

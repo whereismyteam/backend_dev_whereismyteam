@@ -17,10 +17,10 @@ public class SocialController {
     private final ProviderService providerService;
 
 
-    @Value("${spring.social.google.client_id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
 
-    @Value("${spring.social.google.redirect}")
+    @Value("${spring.security.oauth2.client.registration.google.redirect}")
     private String googleRedirect;
 
 

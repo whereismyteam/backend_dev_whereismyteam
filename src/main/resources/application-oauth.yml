@@ -1,0 +1,14 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 550484817415-mbdkli03l0ihv4buksj0sdpa7i78idpq.apps.googleusercontent.com
+            client-secret: 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
+            redirect: https://localhost:9000/users/social/login/google
+            url:
+              login: https://accounts.google.com/o/oauth2/v2/auth
+              token: https://oauth2.googleapis.com/token
+              profile: https://www.googleapis.com/oauth2/v3/userinfo
+#          scope : email, profile

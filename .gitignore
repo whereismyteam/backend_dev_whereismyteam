@@ -46,4 +46,4 @@ out/
 
 SecurityConfig.java
 EmailService.java
-
+application-oauth.yml
