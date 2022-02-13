@@ -192,8 +192,8 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler({GoToLoginExcepttion.class})
-    public  ResponseEntity<Object> handleGoToLoginException(GoToLoginExcepttion e) {
+    @ExceptionHandler({GoToLoginException.class})
+    public  ResponseEntity<Object> handleGoToLoginException(GoToLoginException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 
         ApiException apiException = new ApiException(
@@ -244,8 +244,8 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler({GoToReIssueExcepttion.class})
-    public  ResponseEntity<Object> handleGoToReIssueExcepttion(GoToReIssueExcepttion e) {
+    @ExceptionHandler({GoToReIssueException.class})
+    public  ResponseEntity<Object> handleGoToReIssueException(GoToReIssueException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 
         ApiException apiException = new ApiException(
@@ -256,4 +256,19 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
+
+
+    @ExceptionHandler({AuthCodeNotExistException.class})
+    public  ResponseEntity<Object> handleAuthCodeNotExistException(AuthCodeNotExistException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.AUTH_NOT_EXIST_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
 }
