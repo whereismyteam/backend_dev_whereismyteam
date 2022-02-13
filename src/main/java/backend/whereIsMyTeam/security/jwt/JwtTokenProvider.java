@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 
@@ -53,14 +54,28 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+
+    /**
+     * Access 토큰 파싱
+     * @param jwt
+     * @return
+     */
+    public Claims parseJwt(String jwt) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(jwt)
+                .getBody();
+
+        return claims;
+    }
+
     //Refresh 토큰 생성
     public String createRefreshToken() {
         Date now = new Date();
-
         return Jwts.builder()
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALID_TIME))
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(SignatureAlgorithm.HS256,secretKey)
                 .compact();
     }
 
@@ -68,12 +83,9 @@ public class JwtTokenProvider {
     //이메일을 얻기 위해 access 토큰을 디코딩
     public String getUserEmail(String token) {
         try {
-            //for debug
-            String s=Jwts.parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(token).getSignature();
-            System.out.println(s);
-
-            return Jwts.parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(token).getBody().getSubject();
-            //return !claims.getBody().getExpiration().before(new Date());
+            Claims claims = parseJwt(token);
+            String s=claims.getSubject();
+            return s;
         } catch(ExpiredJwtException e) {
             return e.getClaims().getSubject();
         }
@@ -120,25 +132,20 @@ public class JwtTokenProvider {
      *
      **/
     public void validateAccess(HttpServletRequest header,String email){
-        System.out.println("1\n");
         //access 토큰 null 아닌지 검증
         String accessToken= resolveToken(header);
         if(accessToken == null)
             throw new AccessNotComeException();
-        System.out.println("2\n");
         //logout에서 블랙리스트 처리된 access 토큰 아닌지 검증
         String findLogoutToken = redisService.getData(accessToken);
         if(findLogoutToken!=null)
             throw new InvalidAccessTokenException();
-        System.out.println("3\n");
         //access 토큰 만료 아닌지 검증
         if(validateTokenExpiration(accessToken))
-            throw new GoToReIssueExcepttion();
-        System.out.println("4\n");
+            throw new GoToReIssueException();
         //access 토큰 유저
-    //    if(!getUserEmail(accessToken).equals(email))
-    //        throw new InvalidAccessTokenException();
-     //   System.out.println("5\n");
+        if(!getUserEmail(accessToken).equals(email))
+            throw new InvalidAccessTokenException();
     }
 
     //토큰으로 실DB 저장된 인증된 회원객체로->인증객체 얻기
