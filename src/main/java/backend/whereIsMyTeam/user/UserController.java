@@ -2,6 +2,7 @@ package backend.whereIsMyTeam.user;
 
 //import backend.whereIsMyTeam.oauth.AuthCode;
 import backend.whereIsMyTeam.exception.Jwt.*;
+import backend.whereIsMyTeam.exception.User.AuthCodeNotExistException;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.oauth.AuthCode;
 import backend.whereIsMyTeam.redis.RedisService;
@@ -49,12 +50,15 @@ public class UserController {
 
     /**
      * 소셜 로그인(구글) API
-     * [POST]  /users"/login/:provider
+     * [POST]  /users/login/:provider
      *
      **/
     @PostMapping("/login/{provider}")
-    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody AuthCode authCode, @PathVariable String provider) {
-        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode.getCode(), provider);
+    public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody String authCode, @PathVariable String provider) {
+        if(authCode==null)
+            throw new AuthCodeNotExistException();
+        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode, provider);
+
         return responseService.getSingleResult(responseDto);
     }
 
@@ -77,13 +81,13 @@ public class UserController {
         User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
         String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+user.getEmail());
         if ( findRefreshToken==null)
-            throw new GoToLoginExcepttion();
+            throw new GoToLoginException();
         if(!findRefreshToken.equals(refreshToken))
             throw new InvalidRefreshTokenException();
         System.out.println("11\n");
         //리프레시 토큰 expiration 유효한지 검증, 유효 o->service단에서 access 토큰 재발급, 유효 x->오류처리(로그인 해주세요)
         if(jwtTokenProvider.validateTokenExpiration(refreshToken))
-            throw new GoToLoginExcepttion();
+            throw new GoToLoginException();
 
         System.out.println("12\n");
         //access 토큰 재발행

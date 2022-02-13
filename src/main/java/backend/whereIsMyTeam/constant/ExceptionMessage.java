@@ -26,4 +26,7 @@ public class ExceptionMessage {
     public static String INVALID_ACCESSTOKEN_EXCEPTION_MESSAGE ="Access 토큰이 유효하지 않습니다.";
     public static String ACCESS_NOT_COME_EXCEPTION_MESSAGE="Access 토큰이 오지 않았습니다.";
     public static String GO_TO_REISSUE_EXCEPTION_MESSAGE="Access 토큰이 만료됐습니다. 재발급 받아주세요.";
+
+    //소셜 로그인
+    public static String AUTH_NOT_EXIST_EXCEPTION_MESSAGE="인증 코드를 입력해주세요";
 }
