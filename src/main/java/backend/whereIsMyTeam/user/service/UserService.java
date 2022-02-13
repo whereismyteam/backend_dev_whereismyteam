@@ -300,7 +300,7 @@ public class UserService {
             redisService.deleteData(RedisKey.REFRESH.getKey()+user.getEmail());
 
         //access token redis 블랙리스트 처리
-        redisService.setDataWithExpiration(RedisKey.LOGOUT.getKey() + user.getEmail(),"logout", JwtTokenProvider.TOKEN_VALID_TIME);
+        redisService.setDataWithExpiration(accessToken,"logout", JwtTokenProvider.TOKEN_VALID_TIME);
 
     }
 

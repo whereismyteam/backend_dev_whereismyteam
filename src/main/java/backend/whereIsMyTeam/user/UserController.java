@@ -72,18 +72,20 @@ public class UserController {
         String refreshToken=jwtTokenProvider.resolveRefreshToken(header);
         if(refreshToken==null)
             throw new RefreshNotExistException();
-
-        //리프레시 토큰 유저 유효 한지 검증
+        System.out.println("10\n");
+        //리프레시 토큰 유효 한지 검증
         User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
         String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+user.getEmail());
-        if (findRefreshToken == null || !findRefreshToken.equals(refreshToken))
-            throw new InvalidRefreshTokenException();
-
-        //리프레시 토큰 expiration 유효한지 검증, 유효 o->service단에서 access 토큰 재발급, 유효 x->오류처리(로그인 해주세요)
-        if(!jwtTokenProvider.validateTokenExpiration(refreshToken)){
+        if ( findRefreshToken==null)
             throw new GoToLoginExcepttion();
-        }
+        if(!findRefreshToken.equals(refreshToken))
+            throw new InvalidRefreshTokenException();
+        System.out.println("11\n");
+        //리프레시 토큰 expiration 유효한지 검증, 유효 o->service단에서 access 토큰 재발급, 유효 x->오류처리(로그인 해주세요)
+        if(jwtTokenProvider.validateTokenExpiration(refreshToken))
+            throw new GoToLoginExcepttion();
 
+        System.out.println("12\n");
         //access 토큰 재발행
         ReIssueResponseDto responseDto = userService.reIssue(requestDto);
 
