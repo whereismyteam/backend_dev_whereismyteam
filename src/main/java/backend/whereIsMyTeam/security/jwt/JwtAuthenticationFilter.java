@@ -19,8 +19,7 @@ public class JwtAuthenticationFilter extends /*GenericFilter*/ OncePerRequestFil
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public void doFilterInternal/*doFilter*/(HttpServletRequest request, HttpServletResponse response,
-                                             FilterChain chain) throws IOException, ServletException {
+    public void doFilterInternal/*doFilter*/(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         // 헤더에서 JWT 를 받아옵니다.
         String accessToken = jwtTokenProvider.resolveToken(request);
@@ -69,18 +68,13 @@ public class JwtAuthenticationFilter extends /*GenericFilter*/ OncePerRequestFil
                 }
             }
             filterChain.doFilter(request, response);*/
-
-
     }
-
     //SecurityContext 에 Authentication 객체를 저장합니다.
-    public void setAuthentication(String token) {
+    public void setAuthentication (String token){
         // 토큰으로부터 유저 정보를 받아옵니다.
         Authentication authentication = jwtTokenProvider.getAuthentication(token);
         // SecurityContext 에 Authentication 객체를 저장합니다.
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
-
-
 }
 
