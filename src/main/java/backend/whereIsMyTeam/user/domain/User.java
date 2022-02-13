@@ -18,6 +18,7 @@ import static java.util.Collections.singletonList;
 
 @Entity
 @Getter
+@DynamicInsert
 @Table(name = "USERS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
