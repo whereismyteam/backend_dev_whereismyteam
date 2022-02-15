@@ -16,7 +16,7 @@ import java.util.List;
 @Entity
 @Getter
 @DynamicInsert
-@Table(name = "Board")
+@Table(name = "BOARDS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Board extends BaseTimeEntity {
 
