@@ -1,6 +1,8 @@
 package backend.whereIsMyTeam.user.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
+import backend.whereIsMyTeam.domain.Board;
+import backend.whereIsMyTeam.domain.Comment;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static javax.persistence.CascadeType.ALL;
 
 
 @Entity
@@ -57,6 +60,16 @@ public class User extends BaseTimeEntity {
 
     @Column
     private String provider;
+
+
+    //== 회원탈퇴 -> 작성한 게시물, 댓글 모두 삭제 ==//
+    @OneToMany(mappedBy = "comment", cascade = ALL, orphanRemoval = true)
+    private List<Board> boardList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = ALL, orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
+
+
 
     //String provider
     @Builder
