@@ -17,7 +17,7 @@ import static javax.persistence.FetchType.LAZY;
 @Entity
 @Getter
 //@Builder
-@Table(name = "Comments")
+@Table(name = "COMMENTS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends BaseTimeEntity {
 
