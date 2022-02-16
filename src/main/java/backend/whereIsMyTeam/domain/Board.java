@@ -88,6 +88,10 @@ public class Board extends BaseTimeEntity {
     @OneToMany(mappedBy = "boards")
     private List<TechStackBoard> techstacks = new ArrayList<>();
 
+    //다대일 일대다 양방향
+    @OneToMany(mappedBy = "boards")
+    private List<CategoryBoard> categorys = new ArrayList<>();
+
 
     //게시글 작성 Builder
     @Builder

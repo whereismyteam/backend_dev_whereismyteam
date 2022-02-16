@@ -40,6 +40,10 @@ public class Comment extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    //비밀 댓글 여부
+    @Column(name = "is_secret")
+    private String isSecret;
+
     //다대일 양방향 (댓글N:유저1 )
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "user_idx")
