@@ -4,6 +4,7 @@ import backend.whereIsMyTeam.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 
@@ -16,6 +17,11 @@ public class PostLike {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "postLike_idx")
     private Long likeIdx;
+
+    @Column(nullable = false, length=2)
+    @ColumnDefault("'Y'")
+    private String status;
+
 
     /**
      * 좋아요(N) -  유저(1)

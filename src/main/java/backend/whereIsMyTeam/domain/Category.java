@@ -4,6 +4,7 @@ import backend.whereIsMyTeam.config.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
@@ -23,7 +24,9 @@ public class Category extends BaseTimeEntity {
     @Column(name = "category_name" ,nullable = false)
     private String categoryName;
 
-
+    @Column(nullable = false, length=2)
+    @ColumnDefault("'Y'")
+    private String status;
 
 
 }

@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
@@ -44,10 +45,14 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "user_idx")
     private User user; // 작성자
 
+    @Column(nullable = false, length=2)
+    @ColumnDefault("'Y'")
+    private String status;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "board_idx")
     private Board board;
+
 
 
     /**
