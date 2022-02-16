@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -47,21 +48,19 @@ public class Board extends BaseTimeEntity {
     /**
      *  필드: 게시글 조회 수 => ['인기순' 나열 기준]
      *  기능 요구사항: 클릭 시 중복되지 않도록 방법이 필요
-     *  Q1.의문점) 좋아요(찜) => 회원 즐겨찾기에 추가되는 기능만 가짐.
-     *  Q2. 인기순의 기준을 찜의 갯수로 측정해야 하는 것이 아닌가?
     **/
-    @Column
+    @Column(name = "board_cnt",nullable = false)
     private Long cnt;
 
     //게시글 상태 4가지 중 1개 택
-    @Column(nullable = false)
+    @Column(name="board_status",nullable = false)
     @Enumerated(EnumType.STRING)
-    private BoardStatus status;
+    private BoardStatus boardStatus;
 
 
     //회의방식 (온/온오프/오프라인) 중 1택
     @Enumerated(value = EnumType.STRING)
-    @Column()
+    @Column(nullable = false)
     private MeetingStatus meetingStatus;
 
     //분류(카테고리)
@@ -74,9 +73,9 @@ public class Board extends BaseTimeEntity {
     // 모집인원
     private int recruitment;
 
-    //댓글
-    @OneToMany(mappedBy = "board", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    private List<Comment> comments = new ArrayList<>();
+    @Column(name = "status",nullable = false, length=2)
+    @ColumnDefault("'Y'")
+    private String status;
 
 
     //다대일 양방향 게시글(n): 유저(1)
