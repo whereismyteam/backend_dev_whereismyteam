@@ -96,7 +96,7 @@ public class Board extends BaseTimeEntity {
 
     //Board-Area다대일 일대다 양방향
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_idx")
+    @JoinColumn(name = "area_board_idx")
     private Area area;
 
     @Column(name = "recruitment_field", nullable = false)
