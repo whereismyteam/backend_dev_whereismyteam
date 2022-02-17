@@ -1,8 +1,7 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;

@@ -1,7 +1,7 @@
 package backend.whereIsMyTeam.user.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
-import backend.whereIsMyTeam.domain.Board;
+import backend.whereIsMyTeam.board.domain.Board;
 import backend.whereIsMyTeam.board.domain.Comment;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -61,7 +61,7 @@ public class User extends BaseTimeEntity {
 
 
     //== 회원탈퇴 -> 작성한 게시물, 댓글 모두 삭제 ==//
-    @OneToMany(mappedBy = "comment", cascade = ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "writer", cascade = ALL, orphanRemoval = true)
     private List<Board> boardList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = ALL, orphanRemoval = true)

@@ -1,6 +1,7 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
-import backend.whereIsMyTeam.config.BaseTimeEntity;
+import backend.whereIsMyTeam.board.domain.Board;
+import backend.whereIsMyTeam.board.domain.Category;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,25 +14,24 @@ import javax.persistence.*;
 @Entity
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TechStackBoard extends BaseTimeEntity {
+public class CategoryBoard {
 
     //조인테이블
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "stackBoard_idx",nullable = false, unique = true)
-    private Long stackBoardIdx;
+    @Column(name = "categoryBoard_idx",nullable = false, unique = true)
+    private Long categoryIdx;
 
     @Column(nullable = false, length=2)
     @ColumnDefault("'Y'")
     private String status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_idx")
-    private Board board;
+    private Board boards;
 
-    //오류발생 매핑 문제?
-    @ManyToOne
-    @JoinColumn(name = "stack_idx")
-    private TechStack techStack;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_idx")
+    private Category category;
 }
