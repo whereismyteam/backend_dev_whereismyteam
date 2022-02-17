@@ -13,6 +13,8 @@ import org.mybatis.logging.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -45,6 +47,44 @@ public class BoardService {
                 .build();
     }
 
-  //  void removeComment (Long commentIdx) throws CommentException;
+    /**
+     * Dto로 들어온 값을 통해 답글 작성 진행
+     * @param requestDto
+     * @return
+     */
+    @Transactional
+    public NewCommentResponseDto createReComment(Long boardIdx, Long parentIdx, NewCommentRequestDto requestDto) {
+        Comment comment = requestDto.toEntity();
+
+        comment.confirmWriter(userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new));
+        comment.confirmBoard(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+        comment.confirmParent(commentRepository.findByCommentIdx(parentIdx).orElseThrow(CommentNotExistException::new));
+
+        commentRepository.save(comment);
+
+        return NewCommentResponseDto.builder()
+                .commentIdx(comment.getCommentIdx())
+                .build();
+
+    }
+
+    /**
+     * 댓글 또는 답글 삭제 진행
+     */
+    @Transactional
+    public void deleteComment(Long commentIdx,String email) {
+
+        Comment comment = commentRepository.findByCommentIdx(commentIdx).orElseThrow(CommentNotExistException::new);
+
+
+        //댓글 또는 답글 작성한 본인 아니면 예외 처리
+        if(!comment.getUser().getEmail().equals(email))
+            throw new NoAuthDeleteCommentException();
+
+        comment.delete();
+        List<Comment> removableCommentList = comment.findRemovableList();
+        commentRepository.deleteAll(removableCommentList);
+    }
+
 
 }

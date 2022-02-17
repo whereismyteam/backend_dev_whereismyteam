@@ -13,6 +13,7 @@ import org.hibernate.annotations.DynamicInsert;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static javax.persistence.FetchType.LAZY;
 
@@ -50,6 +51,7 @@ public class Comment extends BaseTimeEntity {
     @JoinColumn(name = "user_idx")
     private User user; // 작성자
 
+    //삭제인지아닌지
     @Column(nullable = false, length=2)
     @ColumnDefault("'Y'")
     private String status;
@@ -57,6 +59,7 @@ public class Comment extends BaseTimeEntity {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "board_idx")
     private Board board;
+
 
 
 
@@ -73,7 +76,13 @@ public class Comment extends BaseTimeEntity {
     @OneToMany(mappedBy = "parent")
     private List<Comment> childList = new ArrayList<>();
 
-    //== 연관관계 편의 메서드 ==//
+    //댓글 또는 답글 삭제
+    public void delete() {
+        this.status = "N";
+    }
+
+
+    //연관관계 편의 메서드
     public void confirmWriter(User writer) {
         this.user = writer;
         writer.addComment(this);
@@ -92,6 +101,41 @@ public class Comment extends BaseTimeEntity {
     public void addChild(Comment child){
         childList.add(child);
     }
+
+    public List<Comment> findRemovableList() {
+
+        List<Comment> result = new ArrayList<>();
+
+        Optional.ofNullable(this.parent).ifPresentOrElse(
+
+                parentComment ->{//답글인 경우 (부모가 존재하는 경우)
+                    if( parentComment.status.equals("N")&& parentComment.isAllChildRemoved().equals("Y")){
+                        result.addAll(parentComment.getChildList());
+                        result.add(parentComment);
+                    }
+                },
+
+                () -> {//댓글인 경우
+                    if (isAllChildRemoved().equals("Y")) {
+                        result.add(this);
+                        result.addAll(this.getChildList());
+                    }
+                }
+        );
+
+        return result;
+    }
+
+
+    //모든 자식 댓글이 삭제되었는지 판단
+    private String isAllChildRemoved() {
+        return getChildList().stream()
+                .map(Comment::getStatus)//지워졌는지 여부로 바꾼다
+                .filter(isRemove -> getStatus().equals("N"))//지워졌으면 true, 안지워졌으면 false
+                .findAny()//지워지지 않은게 하나라도 있다면 false를 반환
+                .orElse("Y");//모두 지워졌다면 true를 반환
+    }
+
 
     @Builder
     public Comment(String content,String isSecret,Comment parent,User user,Board board){
