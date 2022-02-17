@@ -54,15 +54,17 @@ public class Board extends BaseTimeEntity {
     private Long cnt;
 
     //게시글 상태 4가지 중 1개 택
-    @Column(name="board_status",nullable = false)
+    @ElementCollection(fetch = FetchType.LAZY)
+    @Column(name="b_status",nullable = false)
     @Enumerated(EnumType.STRING)
-    private BoardStatus boardStatus;
+    private List<BoardStatus> boardStatuses= new ArrayList<>();
 
 
     //회의방식 (온/온오프/오프라인) 중 1택
+    @ElementCollection(fetch = FetchType.LAZY)
     @Enumerated(value = EnumType.STRING)
     @Column(nullable = false)
-    private MeetingStatus meetingStatus;
+    private List<MeetingStatus> meetingStatus = new ArrayList<>();
 
     //분류(카테고리)
     //다대일 단방향
@@ -75,7 +77,8 @@ public class Board extends BaseTimeEntity {
     @ColumnDefault("0")
     private Long capacityNum;
 
-    @Column(name = "status",nullable = false, length=2)
+
+    @Column(nullable = false, length=2)
     @ColumnDefault("'Y'")
     private String status;
 
@@ -99,7 +102,8 @@ public class Board extends BaseTimeEntity {
     @JoinColumn(name = "area_board_idx")
     private Area area;
 
-    @Column(name = "recruitment_field", nullable = false)
+    //모집분야
+    @Column(nullable = false)
     @ElementCollection(targetClass = String.class)
     private List<String> recruitmentField = new ArrayList<>();
 
