@@ -38,7 +38,7 @@ public class BoardController {
      * @return SingleResult<NewComment>
      */
     @PostMapping("/comments/{boardIdx}")
-    public SingleResult<NewCommentResponseDto> logout (HttpServletRequest header, @PathVariable Long boardIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
+    public SingleResult<NewCommentResponseDto> createComment (HttpServletRequest header, @PathVariable Long boardIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
 
         //access token 검증
         User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
