@@ -1,4 +1,4 @@
-package backend.whereIsMyTeam.board.Repository;
+package backend.whereIsMyTeam.board.repository;
 
 import backend.whereIsMyTeam.board.domain.Board;
 import org.springframework.data.jpa.repository.JpaRepository;
