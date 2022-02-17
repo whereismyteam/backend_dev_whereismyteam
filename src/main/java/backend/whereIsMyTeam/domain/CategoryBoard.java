@@ -28,7 +28,7 @@ public class CategoryBoard {
 
     @ManyToOne
     @JoinColumn(name = "board_idx")
-    private Board board;
+    private Board boards;
 
     @ManyToOne
     @JoinColumn(name = "category_idx")

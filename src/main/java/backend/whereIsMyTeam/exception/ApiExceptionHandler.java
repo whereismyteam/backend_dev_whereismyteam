@@ -1,6 +1,7 @@
 package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
+import backend.whereIsMyTeam.exception.Board.BoardNotExistException;
 import backend.whereIsMyTeam.exception.Jwt.*;
 import backend.whereIsMyTeam.exception.User.*;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -264,6 +265,20 @@ public class ApiExceptionHandler {
 
         ApiException apiException = new ApiException(
                 ExceptionMessage.AUTH_NOT_EXIST_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+
+    @ExceptionHandler({BoardNotExistException.class})
+    public  ResponseEntity<Object> handleBoardNotExistException(BoardNotExistException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.BOARD_NOT_EXIST_EXCEPTION_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );

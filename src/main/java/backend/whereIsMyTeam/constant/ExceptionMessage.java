@@ -29,4 +29,7 @@ public class ExceptionMessage {
 
     //소셜 로그인
     public static String AUTH_NOT_EXIST_EXCEPTION_MESSAGE="인증 코드를 입력해주세요";
+
+    //댓글 작성
+    public static String BOARD_NOT_EXIST_EXCEPTION_MESSAGE="게시물이 존재하지 않습니다.";
 }

@@ -1,7 +1,7 @@
 package backend.whereIsMyTeam.domain;
 
+import backend.whereIsMyTeam.board.domain.Comment;
 import backend.whereIsMyTeam.config.BaseTimeEntity;
-import backend.whereIsMyTeam.user.domain.Role;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -85,7 +85,7 @@ public class Board extends BaseTimeEntity {
     private User writer;
 
     //다대일 일대다 양방향
-    @OneToMany(mappedBy = "boards")
+    @OneToMany(mappedBy = "board")
     private List<TechStackBoard> techstacks = new ArrayList<>();
 
     //다대일 일대다 양방향
@@ -101,6 +101,16 @@ public class Board extends BaseTimeEntity {
         //this.status=status;
         this.content = content;
         this.writer = writer;
+    }
+
+    //게시글을 삭제하면 달려있는 댓글 모두 삭제
+    @OneToMany(mappedBy = "board", cascade =CascadeType.ALL , orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
+
+    //연관관계 편의 메서드
+    public void addComment(Comment comment){
+        //comment의 Board 설정은 comment에서 함
+        commentList.add(comment);
     }
 
 
