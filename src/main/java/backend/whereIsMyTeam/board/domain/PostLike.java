@@ -1,5 +1,6 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
+import backend.whereIsMyTeam.board.domain.Board;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.Builder;
 import lombok.Getter;

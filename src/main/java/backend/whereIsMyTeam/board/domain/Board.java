@@ -1,6 +1,5 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
-import backend.whereIsMyTeam.board.domain.Comment;
 import backend.whereIsMyTeam.config.BaseTimeEntity;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AccessLevel;

@@ -1,4 +1,4 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

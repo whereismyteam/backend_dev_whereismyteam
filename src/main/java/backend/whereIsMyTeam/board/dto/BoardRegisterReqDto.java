@@ -1,8 +1,8 @@
-package backend.whereIsMyTeam.domain.dto;
+package backend.whereIsMyTeam.board.dto;
 
-import backend.whereIsMyTeam.domain.Area;
-import backend.whereIsMyTeam.domain.BoardStatus;
-import backend.whereIsMyTeam.domain.Category;
+import backend.whereIsMyTeam.board.domain.Area;
+import backend.whereIsMyTeam.board.domain.BoardStatus;
+import backend.whereIsMyTeam.board.domain.Category;
 //import backend.whereIsMyTeam.domain.service.BoardService;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AllArgsConstructor;
