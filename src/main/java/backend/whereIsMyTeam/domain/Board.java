@@ -34,7 +34,8 @@ public class Board extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="board_idx",nullable = false, unique = true)
+    @Column(name="board_idx",nullable = false, unique = true
+            ,insertable=false, updatable=false) //조인 사용 오류로 추가 -> 추가/수정 불가능 선언
     private Long boardIdx;
 
     //제목
@@ -50,6 +51,7 @@ public class Board extends BaseTimeEntity {
      *  기능 요구사항: 클릭 시 중복되지 않도록 방법이 필요
     **/
     @Column(name = "board_cnt",nullable = false)
+    @ColumnDefault("0")
     private Long cnt;
 
     //게시글 상태 4가지 중 1개 택
@@ -71,7 +73,8 @@ public class Board extends BaseTimeEntity {
 
 
     // 모집인원
-    private int recruitment;
+    @ColumnDefault("0")
+    private Long capacityNum;
 
     @Column(name = "status",nullable = false, length=2)
     @ColumnDefault("'Y'")
@@ -85,20 +88,31 @@ public class Board extends BaseTimeEntity {
     private User writer;
 
     //다대일 일대다 양방향
-    @OneToMany(mappedBy = "boards")
+    @OneToMany(mappedBy = "board")
     private List<TechStackBoard> techstacks = new ArrayList<>();
 
     //다대일 일대다 양방향
     @OneToMany(mappedBy = "boards")
     private List<CategoryBoard> categorys = new ArrayList<>();
 
+    //Board-Area다대일 일대다 양방향
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_idx")
+    private Area area;
+
+    @Column(name = "recruitment_field", nullable = false)
+    @ElementCollection(targetClass = String.class)
+    private List<String> recruitmentField = new ArrayList<>();
+
 
     //게시글 작성 Builder
     @Builder
-    public Board(String title, String content, User writer, Category category) {
+    public Board(String title,Area area, Long capacityNum, String content
+            , User writer, Category category, BoardStatus boardStatus) {
         this.title=title;
         this.category = category;
-        //this.status=status;
+        this.capacityNum = capacityNum;
+        //this.boardStatus = status;
         this.content = content;
         this.writer = writer;
     }

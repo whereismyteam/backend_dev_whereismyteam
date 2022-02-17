@@ -26,11 +26,11 @@ public class CategoryBoard {
     @ColumnDefault("'Y'")
     private String status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_idx")
-    private Board board;
+    private Board boards;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_idx")
     private Category category;
 }

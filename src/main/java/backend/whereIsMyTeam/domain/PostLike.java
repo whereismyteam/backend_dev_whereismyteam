@@ -27,7 +27,7 @@ public class PostLike {
      * 좋아요(N) -  유저(1)
      * 다대일 단방향
      **/
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_idx")//FK
     private User user;
 
@@ -35,7 +35,7 @@ public class PostLike {
      * 좋아요(N) - 게시글(1)
      *  다대일 단방향
      **/
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_idx")
     private Board board;
 

@@ -63,7 +63,7 @@ public class User extends BaseTimeEntity {
 
 
     //== 회원탈퇴 -> 작성한 게시물, 댓글 모두 삭제 ==//
-    @OneToMany(mappedBy = "comment", cascade = ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "writer", cascade = ALL, orphanRemoval = true)
     private List<Board> boardList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = ALL, orphanRemoval = true)
