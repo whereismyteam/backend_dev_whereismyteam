@@ -1,6 +1,6 @@
 package backend.whereIsMyTeam.board;
 
-import backend.whereIsMyTeam.board.Repository.*;
+import backend.whereIsMyTeam.board.repository.*;
 import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
