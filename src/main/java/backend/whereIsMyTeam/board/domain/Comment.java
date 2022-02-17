@@ -1,6 +1,7 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
+import backend.whereIsMyTeam.domain.Board;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -17,7 +18,7 @@ import static javax.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
-//@Builder
+@DynamicInsert
 @Table(name = "COMMENTS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends BaseTimeEntity {
@@ -41,7 +42,7 @@ public class Comment extends BaseTimeEntity {
     private String content;
 
     //비밀 댓글 여부
-    @Column(name = "is_secret")
+    @Column(name = "is_secret", nullable = false)
     private String isSecret;
 
     //다대일 양방향 (댓글N:유저1 )
@@ -71,5 +72,34 @@ public class Comment extends BaseTimeEntity {
     //== 부모 댓글을 삭제해도 자식 댓글은 남아있음 ==//
     @OneToMany(mappedBy = "parent")
     private List<Comment> childList = new ArrayList<>();
+
+    //== 연관관계 편의 메서드 ==//
+    public void confirmWriter(User writer) {
+        this.user = writer;
+        writer.addComment(this);
+    }
+
+    public void confirmBoard(Board board) {
+        this.board = board;
+        board.addComment(this);
+    }
+
+    public void confirmParent(Comment parent){
+        this.parent = parent;
+        parent.addChild(this);
+    }
+
+    public void addChild(Comment child){
+        childList.add(child);
+    }
+
+    @Builder
+    public Comment(String content,String isSecret,Comment parent,User user,Board board){
+        this.content=content;
+        this.isSecret=isSecret;
+        this.parent=parent;
+        this.user=user;
+        this.board=board;
+    }
 
 }

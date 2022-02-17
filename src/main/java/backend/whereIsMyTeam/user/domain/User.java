@@ -2,7 +2,7 @@ package backend.whereIsMyTeam.user.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
 import backend.whereIsMyTeam.domain.Board;
-import backend.whereIsMyTeam.domain.Comment;
+import backend.whereIsMyTeam.board.domain.Comment;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,10 +12,8 @@ import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static javax.persistence.CascadeType.ALL;
 
 
@@ -94,6 +92,13 @@ public class User extends BaseTimeEntity {
         this.roles=rolee;
         this.emailAuth = true;
     }
+
+    //== 연관관계 메서드 ==//
+    public void addComment(Comment comment){
+        //comment의 writer 설정은 comment에서 함
+        commentList.add(comment);
+    }
+
 
 }
 
