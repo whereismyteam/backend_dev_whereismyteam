@@ -14,9 +14,15 @@ import java.util.List;
 @Entity
 @Getter
 @DynamicInsert
-@Table(name = "CATEGORYS")
+@Table(name = "CATEGORYSS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Category extends BaseTimeEntity {
+
+    /**
+     * Table 명: '분야'
+     * value: 프로젝트, 대회, 스터디
+     * 조건: 값 3개 중 1개 택, 중복불가
+     **/
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,5 +37,5 @@ public class Category extends BaseTimeEntity {
     private String status;
 
     @OneToMany(mappedBy = "category")
-    private List<CategoryBoard> boards = new ArrayList<>();
+    private List<Board> boards = new ArrayList<>();
 }

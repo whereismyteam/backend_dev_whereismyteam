@@ -15,6 +15,11 @@ import javax.persistence.*;
 @Table(name = "POSTLIKES") //찜(즐겨찾기)
 public class PostLike {
 
+    /**
+     * 1. Table 명: '찜(즐겨찾기)'
+     * 2. 조건)
+     **/
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "postLike_idx")
     private Long likeIdx;
