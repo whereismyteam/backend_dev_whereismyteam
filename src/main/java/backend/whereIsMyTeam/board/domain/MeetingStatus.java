@@ -1,4 +1,4 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,6 +6,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum MeetingStatus {
+
+    /**
+     * 1. Table 명: '회의방식'
+     * 2. 조건)
+     **/
+
 
     //회의방식(온라인, 오프라인, 온/오프)
     ONLINED(0,"온라인"),

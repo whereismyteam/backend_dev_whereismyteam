@@ -1,6 +1,6 @@
 package backend.whereIsMyTeam.board;
 
-import backend.whereIsMyTeam.board.Repository.*;
+import backend.whereIsMyTeam.board.repository.*;
 import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
@@ -87,4 +87,32 @@ public class BoardService {
     }
 
 
+
+//    /**
+//     *
+//     * 게시글 작성
+//     **/
+//    @Transactional
+//    public BoardRegisterReqDto saveBoard(BoardRegisterReqDto reqDto){
+//
+//        //임시저장이냐 등록이냐에 따라 status 분리
+//        Board board = BoardRepository.save(
+//                Board.builder()
+//                        .category(reqDto.getCategory())
+//                        .area(reqDto.getArea())
+//                        .capacityNum(reqDto.getCapacityNum())
+//                        .title(reqDto.getTitle())
+//                        .content(reqDto.getContent())
+//                        .writer(reqDto.getUser())
+//                        .boardStatus(reqDto.getStatus())
+////                        .nickName(requestDto.getNickName())
+////                        .roles(Collections.singletonList(Role.ROLE_NOTAUTH))
+////                        .provider(null)
+//                        .build());
+//
+//        return BoardRegisterResDto.builder()
+//                .boardIdx(board.getBoardIdx())
+//                .build();
+//    }
+//}
 }

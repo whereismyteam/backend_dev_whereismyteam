@@ -1,5 +1,7 @@
-package backend.whereIsMyTeam.domain;
+package backend.whereIsMyTeam.board.domain;
 
+import backend.whereIsMyTeam.board.domain.Board;
+import backend.whereIsMyTeam.board.domain.TechStack;
 import backend.whereIsMyTeam.config.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -26,12 +28,12 @@ public class TechStackBoard extends BaseTimeEntity {
     @ColumnDefault("'Y'")
     private String status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_idx")
     private Board board;
 
     //오류발생 매핑 문제?
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stack_idx")
     private TechStack techStack;
 }

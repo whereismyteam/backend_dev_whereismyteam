@@ -1,4 +1,4 @@
-package backend.whereIsMyTeam.board.Repository;
+package backend.whereIsMyTeam.board.repository;
 
 import backend.whereIsMyTeam.board.domain.Comment;
 import backend.whereIsMyTeam.domain.Board;

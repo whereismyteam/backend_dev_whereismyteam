@@ -1,7 +1,6 @@
 package backend.whereIsMyTeam.board.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
-import backend.whereIsMyTeam.domain.Board;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -25,11 +24,11 @@ import static javax.persistence.FetchType.LAZY;
 public class Comment extends BaseTimeEntity {
 
     /**
-     *
+     * 1. Table 명: 댓글
      * 댓글과 유저는 '다대일 관계'
-     * 한 개의 게시글에는 여러 개의 댓글 ㅇ
-     * 한 명의 사용자는 여러 개의 댓글을 작성할 수 ㅇ
-     *
+     * 2. 조건)
+     * - 한 개의 게시글에는 여러 개의 댓글 ㅇ
+     * - 한 명의 사용자는 여러 개의 댓글을 작성할 수 ㅇ
      **/
 
     //댓글 idx
