@@ -286,7 +286,7 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
-    @ExceptionHandler({BoardNotExistException.class})
+    @ExceptionHandler({CommentNotExistException.class})
     public  ResponseEntity<Object> handleCommentNotExistException(CommentNotExistException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 

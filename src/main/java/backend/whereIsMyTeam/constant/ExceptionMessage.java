@@ -34,7 +34,7 @@ public class ExceptionMessage {
     public static String BOARD_NOT_EXIST_EXCEPTION_MESSAGE = "게시물이 존재하지 않습니다.";
 
     //대댓글 작성
-    public static String COMMENT_NOT_EXIST_EXCEPTION_MESSAGE = "부모 댓글이 존재하지 않습니다.";
+    public static String COMMENT_NOT_EXIST_EXCEPTION_MESSAGE = "댓글이 존재하지 않습니다.";
 
     //댓글 삭제
     public static String NO_AUTH_DELETE_COMMENT_EXCEPTION_MESSAGE = "댓글은 작성자만 삭제할 수 있습니다.";

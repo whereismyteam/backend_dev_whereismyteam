@@ -6,6 +6,7 @@ import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.user.UserRepository;
+import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -39,12 +41,19 @@ public class BoardService {
 
         comment.confirmWriter(userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new));
         comment.confirmBoard(boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new));
-
-        commentRepository.save(comment);
+       // Optional<Comment> empty=Optional.ofNullable(comment);
+        comment.confirmParentEmpty();
 
         return NewCommentResponseDto.builder()
                 .commentIdx(comment.getCommentIdx())
                 .build();
+        /*
+        User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+        Board board = boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new);
+        Comment parent = Optional.ofNullable(null)
+
+        Comment comment = commentRepository.save(new Comment(requestDto.getContent(),requestDto.getIsSecret(), user, board, parent));
+        comment.publishCreatedEvent(publisher);*/
     }
 
     /**
@@ -71,19 +80,17 @@ public class BoardService {
     /**
      * 댓글 또는 답글 삭제 진행
      */
+
     @Transactional
     public void deleteComment(Long commentIdx,String email) {
 
         Comment comment = commentRepository.findByCommentIdx(commentIdx).orElseThrow(CommentNotExistException::new);
 
-
         //댓글 또는 답글 작성한 본인 아니면 예외 처리
         if(!comment.getUser().getEmail().equals(email))
             throw new NoAuthDeleteCommentException();
 
-        comment.delete();
-        List<Comment> removableCommentList = comment.findRemovableList();
-        commentRepository.deleteAll(removableCommentList);
+        comment.findDeletableComment().ifPresentOrElse(commentRepository::delete, comment::delete);
     }
 
 

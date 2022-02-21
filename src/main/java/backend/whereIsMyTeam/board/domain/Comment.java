@@ -6,8 +6,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import static javax.persistence.FetchType.LAZY;
 @Entity
 @Getter
 @DynamicInsert
+@Slf4j
 @Table(name = "COMMENTS")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment extends BaseTimeEntity {
@@ -48,15 +52,17 @@ public class Comment extends BaseTimeEntity {
     //다대일 양방향 (댓글N:유저1 )
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "user_idx")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private User user; // 작성자
 
     //삭제인지아닌지
-    @Column(nullable = false, length=2)
+    @Column( nullable = false, length=2)
     @ColumnDefault("'Y'")
     private String status;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "board_idx")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Board board;
 
 
@@ -69,15 +75,18 @@ public class Comment extends BaseTimeEntity {
     //댓글 (연관관계 주인)
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "parent_idx")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Comment parent;
 
     //== 부모 댓글을 삭제해도 자식 댓글은 남아있음 ==//
     @OneToMany(mappedBy = "parent")
-    private List<Comment> childList = new ArrayList<>();
+    private List<Comment> children  = new ArrayList<>();
 
     //댓글 또는 답글 삭제
     public void delete() {
         this.status = "N";
+        //for debug
+        System.out.println("2");
     }
 
 
@@ -97,42 +106,51 @@ public class Comment extends BaseTimeEntity {
         parent.addChild(this);
     }
 
+    public void confirmParentEmpty(){
+        Comment comment=null;
+        //Optional<Comment> empty=Optional.ofNullable(comment);
+        this.parent = comment;
+        //parent.addChild(this);
+    }
+
+
     public void addChild(Comment child){
-        childList.add(child);
+        children .add(child);
     }
-
-    public List<Comment> findRemovableList() {
-
-        List<Comment> result = new ArrayList<>();
-
-        Optional.ofNullable(this.parent).ifPresentOrElse(
-
-                parentComment ->{//답글인 경우 (부모가 존재하는 경우)
-                    if( parentComment.status.equals("N")&& parentComment.isAllChildRemoved().equals("Y")){
-                        result.addAll(parentComment.getChildList());
-                        result.add(parentComment);
-                    }
-                },
-
-                () -> {//댓글인 경우
-                    if (isAllChildRemoved().equals("Y")) {
-                        result.add(this);
-                        result.addAll(this.getChildList());
-                    }
-                }
-        );
-
-        return result;
-    }
-
 
     //모든 자식 댓글이 삭제되었는지 판단
     private String isAllChildRemoved() {
-        return getChildList().stream()
+        System.out.println("12");
+        return getChildren().stream()
                 .map(Comment::getStatus)//지워졌는지 여부로 바꾼다
-                .filter(isRemove -> getStatus().equals("N"))//지워졌으면 true, 안지워졌으면 false
+                .filter(status -> status.equals("Y"))//지워졌으면 true, 안지워졌으면 false
                 .findAny()//지워지지 않은게 하나라도 있다면 false를 반환
                 .orElse("Y");//모두 지워졌다면 true를 반환
+    }
+
+    public Optional<Comment> findDeletableComment() {
+     return hasChildren() ? Optional.empty() : Optional.of(findDeletableCommentByParent());
+    }
+
+    private boolean hasChildren() { //자식 존개하면 true 자식 없으면 false
+        return getChildren().size() != 0;
+    }
+
+    private boolean isDeletedParent() { //부모 존재하고 삭제된 경우 true 아니면 false
+        Comment parent=getParent();
+        if(parent!=null){
+            boolean s=parent.getStatus().equals("N");
+            return s;
+        }
+       else return false;
+    }
+
+    private Comment findDeletableCommentByParent() {
+        if (isDeletedParent()) { //지울 수 있는 부모 존재하면
+            Comment deletableParent = getParent().findDeletableCommentByParent();
+            if(getParent().getChildren().size() == 1) return deletableParent;
+        }
+        return this;
     }
 
 
@@ -143,6 +161,7 @@ public class Comment extends BaseTimeEntity {
         this.parent=parent;
         this.user=user;
         this.board=board;
+        this.status="Y";
     }
 
 }

@@ -33,7 +33,7 @@ public class BoardController {
 
     /**
      * 댓글 생성 API
-     * [POST] /users/comments
+     * [POST] /users/comments/:boardIdx
      * @return SingleResult<NewComment>
      */
     @PostMapping("/comments/{boardIdx}")
