@@ -1,6 +1,9 @@
 package backend.whereIsMyTeam.board;
 
 import backend.whereIsMyTeam.board.dto.*;
+import backend.whereIsMyTeam.board.service.BoardService;
+import backend.whereIsMyTeam.board.service.PostLikeService;
+import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
@@ -31,6 +34,7 @@ public class BoardController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final BoardService boardService;
+    private final PostLikeService postLikeService;
 
     /**
      * 댓글 생성 API
@@ -95,6 +99,55 @@ public class BoardController {
     public SingleResult<GetBoardResponseDto> getBoardDetail ( @PathVariable("postIdx") Long postIdx, @Valid @ModelAttribute GetBoardDetailRequestDto requestDto) {
         //방문자 수 증가해야함
         GetBoardResponseDto responseDto=boardService.boardDetail(postIdx,requestDto);
+        return responseService.getSingleResult(responseDto);
+    }
+
+    /**
+     * 찜 생성 API
+     * [POST] /users/posts/likes
+     * @return SingleResult<String>
+     */
+    @PostMapping("/posts/likes")
+    public SingleResult<PostLikeResponseDto> createPostLike (HttpServletRequest header, @Valid @RequestBody PostLikeRequestDto requestDto) {
+
+        //access token 검증
+        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+        jwtTokenProvider.validateAccess(header, user.getEmail());
+
+        //access 토큰 문제 없으므로 좋아요 등록 or 좋아요 취소
+        PostLikeResponseDto responseDto = postLikeService.pushLikeButton(user,requestDto);
+
+//        return responseService.getSingleResult("즐겨찾기에서 해제되었습니다.");
+//        return responseService.getSingleResult(responseDto);
+        return responseService.getSingleResult(responseDto);
+    }
+
+    /**
+     * 찜 취소 API
+     * [POST] /users/posts/cancel/likes
+     * @return SingleResult<String>
+     */
+    @PatchMapping("/posts/cancel/likes")
+    public SingleResult<String> cancelPostLike (HttpServletRequest header,  @Valid @RequestBody PostLikeRequestDto requestDto) {
+
+        //access token 검증
+        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+        jwtTokenProvider.validateAccess(header, user.getEmail());
+
+        //access 토큰 문제 없으므로 좋아요 좋아요 취소
+        postLikeService.cancelLikeButton(requestDto);
+
+        return responseService.getSingleResult("즐겨찾기에서 해제되었습니다.");
+
+    }
+
+    //좋아요 갯수 실험
+    @GetMapping("/posts/likes/not")
+    public SingleResult<PostLikeNumResponseDto> checkPostLikeNum (HttpServletRequest header,  @Valid @RequestBody PostLikeNumRequestDto requestDto) {
+
+        // '찜 취소'
+        PostLikeNumResponseDto responseDto=postLikeService.getPostLikeInfo(requestDto);
+
         return responseService.getSingleResult(responseDto);
     }
 
