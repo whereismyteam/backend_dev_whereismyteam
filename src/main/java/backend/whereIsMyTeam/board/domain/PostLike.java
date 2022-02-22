@@ -6,11 +6,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
+@DynamicInsert    // (2)
+@DynamicUpdate
 @NoArgsConstructor
 @Table(name = "POSTLIKES") //찜(즐겨찾기)
 public class PostLike {
