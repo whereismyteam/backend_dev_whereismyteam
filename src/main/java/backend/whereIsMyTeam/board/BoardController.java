@@ -6,6 +6,7 @@ import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
+import backend.whereIsMyTeam.user.dto.EmailAuthRequestDto;
 import backend.whereIsMyTeam.user.dto.UserLoginRequestDto;
 import backend.whereIsMyTeam.user.dto.UserLoginResponseDto;
 import backend.whereIsMyTeam.user.dto.UserLogoutRequestDto;
@@ -22,7 +23,7 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
+@RequestMapping("")
 public class BoardController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -36,7 +37,7 @@ public class BoardController {
      * [POST] /users/comments/:boardIdx
      * @return SingleResult<NewComment>
      */
-    @PostMapping("/comments/{boardIdx}")
+    @PostMapping("/users/comments/{boardIdx}")
     public SingleResult<NewCommentResponseDto> createComment (HttpServletRequest header, @PathVariable Long boardIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
 
         //access token 검증
@@ -54,7 +55,7 @@ public class BoardController {
      * [POST] /users/comments/:boardIdx/reComments/:parentIdx
      * @return SingleResult<NewComment>
      */
-    @PostMapping("/comments/{boardIdx}/reComments/{parentIdx}")
+    @PostMapping("/users/comments/{boardIdx}/reComments/{parentIdx}")
     public SingleResult<NewCommentResponseDto> createReComment (HttpServletRequest header, @PathVariable("boardIdx") Long boardIdx, @PathVariable("parentIdx") Long parentIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
 
         //access token 검증
@@ -72,7 +73,7 @@ public class BoardController {
      * [DELETE] /users/comments/:commentIdx
      * @return SingleResult<NewComment>
      */
-    @DeleteMapping("/comments/{commentIdx}")
+    @DeleteMapping("/users/comments/{commentIdx}")
     public SingleResult<String> deleteComment( HttpServletRequest header,@PathVariable("commentIdx") Long commentIdx,@Valid @RequestBody PatchCommentRequestDto requestDto){
         //access token 검증
         User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
@@ -83,6 +84,18 @@ public class BoardController {
         boardService.deleteComment(commentIdx,email);
 
         return responseService.getSingleResult("댓글 또는 답글이 삭제됐습니다.");
+    }
+
+    /**
+     * 개별 게시물 조회 API
+     * [GET] /posts/:postIdx
+     * @return SingleResult<String>
+     */
+    @PutMapping("/posts/{postIdx}")
+    public SingleResult<GetBoardResponseDto> getBoardDetail ( @PathVariable("postIdx") Long postIdx, @Valid @ModelAttribute GetBoardDetailRequestDto requestDto) {
+        //방문자 수 증가해야함
+        GetBoardResponseDto responseDto=boardService.boardDetail(postIdx,requestDto);
+        return responseService.getSingleResult(responseDto);
     }
 
 }

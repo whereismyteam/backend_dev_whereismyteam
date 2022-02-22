@@ -5,6 +5,7 @@ import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
+import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,10 @@ import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,6 +95,28 @@ public class BoardService {
             throw new NoAuthDeleteCommentException();
 
         comment.findDeletableComment().ifPresentOrElse(commentRepository::delete, comment::delete);
+    }
+
+    /**
+     * 게시물 단건 조회
+     * @param requestDto
+     * @return
+     */
+    @Transactional
+    public GetBoardResponseDto boardDetail(Long boardIdx, GetBoardDetailRequestDto requestDto) {
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+        if(optional.isPresent()) {
+            Board board = optional.get();
+            //방문자 수 1 증가
+            board.setHitCnt(board.getHitCnt() + 1);
+            boardRepository.save(board);
+
+        }
+        else {
+            throw new NullPointerException();
+        }
+
+        return GetBoardResponseDto();
     }
 
 
