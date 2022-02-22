@@ -22,7 +22,10 @@ public class NewCommentRequestDto {
     String isSecret;
 
     public Comment toEntity() {
-        return Comment.builder().content(content).isSecret(isSecret).build();
+
+        return Comment.builder()
+                .content(content)
+                .isSecret(isSecret).build();
     }
 
 }

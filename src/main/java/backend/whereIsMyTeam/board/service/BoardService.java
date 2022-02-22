@@ -1,4 +1,4 @@
-package backend.whereIsMyTeam.board;
+package backend.whereIsMyTeam.board.service;
 
 import backend.whereIsMyTeam.board.repository.*;
 import backend.whereIsMyTeam.board.domain.*;
