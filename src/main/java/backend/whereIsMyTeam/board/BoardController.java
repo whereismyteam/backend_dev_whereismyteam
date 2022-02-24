@@ -92,7 +92,7 @@ public class BoardController {
     @GetMapping("/posts/likes/not")
     public SingleResult<PostLikeNumResponseDto> checkPostLikeNum (HttpServletRequest header,  @Valid @RequestBody PostLikeNumRequestDto requestDto) {
 
-        // '찜 취소'
+        //
         PostLikeNumResponseDto responseDto=postLikeService.getPostLikeInfo(requestDto);
 
         return responseService.getSingleResult(responseDto);
