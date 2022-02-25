@@ -99,24 +99,28 @@ public class BoardService {
 
     /**
      * 게시물 단건 조회
-     * @param requestDto
-     * @return
+     * @return GetBoardResponseDto
      */
     @Transactional
-    public GetBoardResponseDto boardDetail(Long boardIdx, GetBoardDetailRequestDto requestDto) {
+    public GetBoardResponseDto boardDetail(Long boardIdx,Long userIdx) {
         Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
         if(optional.isPresent()) {
             Board board = optional.get();
             //방문자 수 1 증가
             board.setHitCnt(board.getHitCnt() + 1);
             boardRepository.save(board);
+            //조회 로직 회원,비회원 구분 해야함
+            if(userIdx!=0) { //회원
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+            }
+            else{ //비회원
+                return new GetBoardResponseDto(0,boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+            }
 
         }
         else {
             throw new NullPointerException();
         }
-
-        return GetBoardResponseDto();
     }
 
 

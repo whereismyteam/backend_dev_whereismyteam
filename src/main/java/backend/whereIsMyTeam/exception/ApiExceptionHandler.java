@@ -339,4 +339,42 @@ public class ApiExceptionHandler {
 
         return new ResponseEntity<>(apiException, httpStatus);
     }
+
+    @ExceptionHandler({CannotConvertNestedStructureException.class})
+    public  ResponseEntity<Object> handleCannotConvertNestedStructureException(CannotConvertNestedStructureException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.CAN_NOT_CONVERT_NESTED_STRUCTURES_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+    @ExceptionHandler({GoToEmailAuthException.class})
+    public  ResponseEntity<Object> handleGoToEmailAuthException(GoToEmailAuthException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.GET_EMAIL_AUTH_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({OnlyUserCanUseException.class})
+    public  ResponseEntity<Object> handleOnlyUserCanUseException(OnlyUserCanUseException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.ONLY_USER_CAN_USE_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
 }

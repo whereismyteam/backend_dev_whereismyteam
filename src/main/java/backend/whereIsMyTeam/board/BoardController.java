@@ -4,6 +4,8 @@ import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.board.service.BoardService;
 import backend.whereIsMyTeam.board.service.PostLikeService;
 import backend.whereIsMyTeam.board.dto.*;
+import backend.whereIsMyTeam.exception.User.GoToEmailAuthException;
+import backend.whereIsMyTeam.exception.User.OnlyUserCanUseException;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
@@ -26,7 +28,7 @@ import javax.validation.Valid;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("")
+@RequestMapping("/users")
 public class BoardController {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -41,17 +43,25 @@ public class BoardController {
      * [POST] /users/comments/:boardIdx
      * @return SingleResult<NewComment>
      */
-    @PostMapping("/users/comments/{boardIdx}")
+    @PostMapping("/comments/{boardIdx}")
     public SingleResult<NewCommentResponseDto> createComment (HttpServletRequest header, @PathVariable Long boardIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
 
-        //access token 검증
-        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        jwtTokenProvider.validateAccess(header, user.getEmail());
+        if(requestDto.getUserIdx()!=0) {
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if(!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
 
-        //access 토큰 문제 없으므로 로그아웃 진행
-        NewCommentResponseDto responseDto=boardService.createComment(boardIdx,requestDto);
+            //문제 없으므로 댓글 생성 진행
+            NewCommentResponseDto responseDto = boardService.createComment(boardIdx, requestDto);
 
-        return responseService.getSingleResult(responseDto);
+            return responseService.getSingleResult(responseDto);
+        }
+        else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
 
     /**
@@ -59,17 +69,25 @@ public class BoardController {
      * [POST] /users/comments/:boardIdx/reComments/:parentIdx
      * @return SingleResult<NewComment>
      */
-    @PostMapping("/users/comments/{boardIdx}/reComments/{parentIdx}")
+    @PostMapping("/comments/{boardIdx}/reComments/{parentIdx}")
     public SingleResult<NewCommentResponseDto> createReComment (HttpServletRequest header, @PathVariable("boardIdx") Long boardIdx, @PathVariable("parentIdx") Long parentIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
+        
+        if(requestDto.getUserIdx()!=0) {
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if(!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
 
-        //access token 검증
-        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        jwtTokenProvider.validateAccess(header, user.getEmail());
+            //문제 없으므로 답글 생성 진행
+            NewCommentResponseDto responseDto=boardService.createReComment(boardIdx,parentIdx,requestDto);
 
-        //access 토큰 문제 없으므로 로그아웃 진행
-        NewCommentResponseDto responseDto=boardService.createReComment(boardIdx,parentIdx,requestDto);
-
-        return responseService.getSingleResult(responseDto);
+            return responseService.getSingleResult(responseDto);
+        }
+        else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
 
     /**
@@ -77,29 +95,43 @@ public class BoardController {
      * [DELETE] /users/comments/:commentIdx
      * @return SingleResult<NewComment>
      */
-    @DeleteMapping("/users/comments/{commentIdx}")
+    @DeleteMapping("/comments/{commentIdx}")
     public SingleResult<String> deleteComment( HttpServletRequest header,@PathVariable("commentIdx") Long commentIdx,@Valid @RequestBody PatchCommentRequestDto requestDto){
-        //access token 검증
-        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        jwtTokenProvider.validateAccess(header, user.getEmail());
 
-        //access 토큰 문제 없으므로 댓글/답글 삭제 진행
-        String email=user.getEmail();
-        boardService.deleteComment(commentIdx,email);
+        if(requestDto.getUserIdx()!=0) {
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if(!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
 
-        return responseService.getSingleResult("댓글 또는 답글이 삭제됐습니다.");
+            //문제 없으므로 뎃글, 답글 삭제 진행
+            String email=user.getEmail();
+            boardService.deleteComment(commentIdx,email);
+
+            return responseService.getSingleResult("댓글 또는 답글이 삭제됐습니다.");
+        }
+        else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
 
     /**
-     * 개별 게시물 조회 API
-     * [GET] /posts/:postIdx
+     * 단건 게시물 조회 API
+     * [PUT] users/:userIdx/posts/:postIdx
      * @return SingleResult<String>
      */
-    @PutMapping("/posts/{postIdx}")
-    public SingleResult<GetBoardResponseDto> getBoardDetail ( @PathVariable("postIdx") Long postIdx, @Valid @ModelAttribute GetBoardDetailRequestDto requestDto) {
-        //방문자 수 증가해야함
-        GetBoardResponseDto responseDto=boardService.boardDetail(postIdx,requestDto);
+    @PutMapping("{userIdx}/posts/{postIdx}")
+    public SingleResult<GetBoardResponseDto> getBoardDetail ( HttpServletRequest header, @PathVariable("userIdx") Long userIdx,@PathVariable("postIdx") Long postIdx) {
+        if(userIdx!=0){ //회원이라면
+            //access token 검증
+            User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+        }
+        GetBoardResponseDto responseDto=boardService.boardDetail(postIdx,userIdx);
         return responseService.getSingleResult(responseDto);
+
     }
 
     /**

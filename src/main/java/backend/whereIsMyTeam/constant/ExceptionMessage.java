@@ -41,4 +41,11 @@ public class ExceptionMessage {
     //댓글 삭제
     public static String NO_AUTH_DELETE_COMMENT_EXCEPTION_MESSAGE = "댓글은 작성자만 삭제할 수 있습니다.";
 
+    //게시물 조회
+    public static String CAN_NOT_CONVERT_NESTED_STRUCTURES_EXCEPTION_MESSAGE= "댓글 계층 구조를 전환하는데 실패했습니다.";
+
+    //API 사용 검증
+    public static String GET_EMAIL_AUTH_EXCEPTION_MESSAGE="이메일 인증을 해주세요.";
+    public static String ONLY_USER_CAN_USE_MESSAGE="회원만 사용가능한 API 입니다.";
+
 }

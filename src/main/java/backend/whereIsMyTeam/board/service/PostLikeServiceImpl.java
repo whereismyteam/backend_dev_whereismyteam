@@ -28,6 +28,7 @@ public class PostLikeServiceImpl implements PostLikeService {
     private final PostLikeRepository postLikeRepository;
     private final BoardRepository boardRepository;
 
+
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     //게시물 찾아오기
@@ -118,6 +119,21 @@ public class PostLikeServiceImpl implements PostLikeService {
     public boolean checkPushedLike(PostLikeRequestDto postLikeRequestDto) {
         return postLikeRepository.exist(postLikeRequestDto.getUserIdx(), postLikeRequestDto.getBoardIdx())
                 .isPresent();
+    }
+
+    /**
+     * 찜 여부확인 String type version
+     * @param String
+     * @return
+     **/
+    @Transactional(readOnly = true)
+    public String checkPushedLikeString(Long userIdx,Long boardIdx) {
+        if(postLikeRepository.exist(userIdx, boardIdx).isPresent()){
+            return "Y";
+        }
+        else{
+            return "N";
+        }
     }
 
     /**
