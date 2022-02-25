@@ -34,9 +34,9 @@ public class User extends BaseTimeEntity {
     @ColumnDefault("'Y'")
     private String status;
 
-//    @Column(nullable = false)
-//    @ColumnDefault("1")
-//    private Long profileImgIdx;
+    @Column(nullable = false)
+    @ColumnDefault("1")
+    private Long profileImgIdx;
 
     @Column(nullable = false)
     private String email;
@@ -59,10 +59,7 @@ public class User extends BaseTimeEntity {
     @Column
     private String provider;
 
-    //프로필 이미지(n) -  (1)유저 -> 유저기준 다대일 단방향
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="profile_idx")
-    private ProfileImages profileImages;
+
 
 
     //== 회원탈퇴 -> 작성한 게시물, 댓글 모두 삭제 ==//
