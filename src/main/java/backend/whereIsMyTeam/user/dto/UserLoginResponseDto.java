@@ -11,4 +11,7 @@ public class UserLoginResponseDto {
     private Long userIdx;
     private String token;
     private String refreshToken;
+    private String email;
+    private String nickName;
+    private Long profileImgIdx;
 }

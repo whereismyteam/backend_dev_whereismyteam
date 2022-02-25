@@ -3,6 +3,8 @@ package backend.whereIsMyTeam.user;
 //import backend.whereIsMyTeam.oauth.AuthCode;
 import backend.whereIsMyTeam.exception.Jwt.*;
 import backend.whereIsMyTeam.exception.User.AuthCodeNotExistException;
+import backend.whereIsMyTeam.exception.User.GoToEmailAuthException;
+import backend.whereIsMyTeam.exception.User.OnlyUserCanUseException;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.oauth.AuthCode;
 import backend.whereIsMyTeam.redis.RedisService;
@@ -167,15 +169,22 @@ public class UserController {
     @PostMapping("/logout")
     public SingleResult<String> logout ( HttpServletRequest header, @Valid @RequestBody UserLogoutRequestDto requestDto) {
 
-        //access token 검증
-        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        jwtTokenProvider.validateAccess(header, user.getEmail());
+        if(requestDto.getUserIdx()!=0) {
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if(!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
 
+            //access 토큰 문제 없으므로 로그아웃 진행
+            userService.logout(header,requestDto);
 
-        //access 토큰 문제 없으므로 로그아웃 진행
-        userService.logout(header,requestDto);
-
-        return responseService.getSingleResult("로그아웃 됐습니다.");
+            return responseService.getSingleResult("로그아웃 됐습니다.");
+        }
+        else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
 
 }

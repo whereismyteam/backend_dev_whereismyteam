@@ -116,10 +116,6 @@ public class JwtTokenProvider {
     //토큰의 유효성 검증 + 만료일자 확인
     public boolean validateTokenExpiration(String token) {
         try {
-            //for debug
-            String s=Jwts.parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(token).getSignature();
-            System.out.println(s);
-
             Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey.getBytes()).parseClaimsJws(token);
             return !claims.getBody().getExpiration().before(new Date());
         } catch (Exception e) {
