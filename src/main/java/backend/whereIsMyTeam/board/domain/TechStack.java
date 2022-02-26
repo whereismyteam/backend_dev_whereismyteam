@@ -1,7 +1,6 @@
 package backend.whereIsMyTeam.board.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
-import backend.whereIsMyTeam.user.domain.ProfileImages;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +25,7 @@ public class TechStack extends BaseTimeEntity {
     @Column(name = "stack_idx",nullable = false, unique = true)
     private Long stackIdx;
 
-    @Column(nullable = false)
+    @Column(name = "stack_name",nullable = false)
     private String stackName;
 
     @Column(nullable = false, length=2)
@@ -36,7 +35,4 @@ public class TechStack extends BaseTimeEntity {
     @OneToMany(mappedBy = "techStack")
     private List<TechStackBoard> boards = new ArrayList<>();
 
-    //스택 이미지
-    @Column(name = "stack_url",nullable = false)
-    private String stackUrl;
 }
