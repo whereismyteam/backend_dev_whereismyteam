@@ -28,6 +28,7 @@ public class PostLikeServiceImpl implements PostLikeService {
     private final PostLikeRepository postLikeRepository;
     private final BoardRepository boardRepository;
 
+
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     //게시물 찾아오기
@@ -40,41 +41,6 @@ public class PostLikeServiceImpl implements PostLikeService {
 
 
 
-
-    //한 번에 좋아요 취소 다 처리
-//    @Override
-//    public Boolean bothPushLikeButton(User user, PostLikeDto postLikeDto) {
-//        PostLike pLike = postLikeDto.toEntity(user, getBoard(postLikeDto),true);
-//        int checked = 0;
-//        postLikeRepository.exist(postLikeDto.getUserIdx(), postLikeDto.getBoardIdx())
-//                .ifPresentOrElse(
-//                        postLike -> {
-//                            /**
-//                             * if 좋아요 클릭
-//                             * (조건) :좋아요 x 여야 함
-//                             * else if  좋아요가 ㅇ? [오류 발생]
-//                             * => FE에서 api를 선택해준 것.
-//                             **/
-//                            //이력이 ㅇ -> 좋아요 취소
-//                            postLikeRepository.deleteBylikeIdx(postLike.getLikeIdx());
-//
-//                            //throw new PostLikeExistException();
-//
-//                        }
-//                        ,
-//                        () -> {
-//                            //이력이 x -> 좋아요 누름
-//
-//                            //Board board = getBoard(postLikeDto);
-//                            postLikeRepository.save(pLike);
-//                        });
-//
-//
-//        return true;
-//    }
-
-
-
     /**
      * 찜 생성
      * @param user
@@ -83,26 +49,38 @@ public class PostLikeServiceImpl implements PostLikeService {
      **/
     @Override
     public PostLikeResponseDto pushLikeButton(User user, PostLikeRequestDto postLikeRequestDto) {
+
         PostLike pLike = postLikeRequestDto.toEntity(user, getBoard(postLikeRequestDto));
-
-        postLikeRepository.exist(postLikeRequestDto.getUserIdx(), postLikeRequestDto.getBoardIdx())
-                .ifPresentOrElse(
-                        postLike -> {
-                            /**
-                             * if 좋아요 클릭
-                             * (조건) :좋아요 x 여야 함
-                             * else if  좋아요가 ㅇ? [오류 발생]
-                             * => FE에서 api를 선택해준 것.
-                             **/
-                            throw new PostLikeExistException();
-                        }
-                        ,
-                        () -> {
-                            //이력이 x -> 좋아요 누름
-                            //Board board = getBoard(postLikeDto);
-                            postLikeRepository.save(pLike);
-
-                        });
+        if(checkPushedLike(postLikeRequestDto)) {
+            /**
+             * if 좋아요 클릭
+             * (조건) :좋아요 x 여야 함
+             * else if  좋아요가 ㅇ? [오류 발생]
+             * => FE에서 api를 선택해준 것.
+             **/
+            throw new PostLikeNotExistException();
+        }
+        else{
+            postLikeRepository.save(pLike);
+        }
+//                    postLikeRepository.exist(postLikeRequestDto.getUserIdx(), postLikeRequestDto.getBoardIdx())
+//                .ifPresentOrElse(
+//                        postLike -> {
+//                            /**
+//                             * if 좋아요 클릭
+//                             * (조건) :좋아요 x 여야 함
+//                             * else if  좋아요가 ㅇ? [오류 발생]
+//                             * => FE에서 api를 선택해준 것.
+//                             **/
+//                            throw new PostLikeExistException();
+//                        }
+//                        ,
+//                        () -> {
+//                            //해당 게시글 좋아요 누른 이력이 x -> 좋아요 누름
+//                            //Board board = getBoard(postLikeDto);
+//                            postLikeRepository.save(pLike);
+//
+//                        });
 
         return PostLikeResponseDto.builder()
                 .postLikeIdx(pLike.getLikeIdx())
@@ -118,6 +96,21 @@ public class PostLikeServiceImpl implements PostLikeService {
     public boolean checkPushedLike(PostLikeRequestDto postLikeRequestDto) {
         return postLikeRepository.exist(postLikeRequestDto.getUserIdx(), postLikeRequestDto.getBoardIdx())
                 .isPresent();
+    }
+
+    /**
+     * 찜 여부확인 String type version
+     * @param 'String'
+     * @return
+     **/
+    @Transactional(readOnly = true)
+    public String checkPushedLikeString(Long userIdx,Long boardIdx) {
+        if(postLikeRepository.exist(userIdx, boardIdx).isPresent()){
+            return "Y";
+        }
+        else{
+            return "N";
+        }
     }
 
     /**

@@ -27,6 +27,8 @@ public interface PostLikeService {
     //좋아요 여부
     public boolean checkPushedLike(PostLikeRequestDto postLikeRequestDto);
 
+    //좋아요 여부 string 버전
+    public String checkPushedLikeString(Long userIdx,Long boardIdx);
 
 
 

@@ -1,9 +1,7 @@
 package backend.whereIsMyTeam.exception;
 
 import backend.whereIsMyTeam.constant.ExceptionMessage;
-import backend.whereIsMyTeam.exception.Board.BoardNotExistException;
-import backend.whereIsMyTeam.exception.Board.PostLikeExistException;
-import backend.whereIsMyTeam.exception.Board.PostLikeNotExistException;
+import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.Jwt.*;
 import backend.whereIsMyTeam.exception.User.*;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -288,6 +286,32 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
+    @ExceptionHandler({CommentNotExistException.class})
+    public  ResponseEntity<Object> handleCommentNotExistException(CommentNotExistException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.COMMENT_NOT_EXIST_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({NoAuthDeleteCommentException.class})
+    public  ResponseEntity<Object> handleNoAuthDeleteCommentException(NoAuthDeleteCommentException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.NO_AUTH_DELETE_COMMENT_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
 
     @ExceptionHandler({PostLikeExistException.class})
     public  ResponseEntity<Object> handleBoardNotExistException(PostLikeExistException e) {
@@ -309,6 +333,44 @@ public class ApiExceptionHandler {
 
         ApiException apiException = new ApiException(
                 ExceptionMessage.POST_LIKE_NOT_EXIST_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({CannotConvertNestedStructureException.class})
+    public  ResponseEntity<Object> handleCannotConvertNestedStructureException(CannotConvertNestedStructureException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.CAN_NOT_CONVERT_NESTED_STRUCTURES_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+    @ExceptionHandler({GoToEmailAuthException.class})
+    public  ResponseEntity<Object> handleGoToEmailAuthException(GoToEmailAuthException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.GET_EMAIL_AUTH_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
+    @ExceptionHandler({OnlyUserCanUseException.class})
+    public  ResponseEntity<Object> handleOnlyUserCanUseException(OnlyUserCanUseException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.ONLY_USER_CAN_USE_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );

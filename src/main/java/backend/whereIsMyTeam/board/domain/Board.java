@@ -133,5 +133,11 @@ public class Board extends BaseTimeEntity {
         commentList.add(comment);
     }
 
+    public void setHitCnt(Long cnt){
+        this.cnt=cnt;
+    }
+    public Long getHitCnt(){
+        return this.cnt;
+    }
 
 }

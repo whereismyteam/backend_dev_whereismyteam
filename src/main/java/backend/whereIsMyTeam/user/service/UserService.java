@@ -74,7 +74,7 @@ public class UserService {
         //Redis에 refresh 토큰 저장
         redisService.setDataWithExpiration(RedisKey.REFRESH.getKey() +user.getEmail(), refreshToken, JwtTokenProvider.REFRESH_TOKEN_VALID_TIME);
 
-        return new UserLoginResponseDto(user.getUserIdx(), accessToken, refreshToken);
+        return new UserLoginResponseDto(user.getUserIdx(), accessToken, refreshToken,user.getEmail(),user.getNickName(),user.getProfileImgIdx());
     }
 
 
@@ -251,11 +251,11 @@ public class UserService {
         Optional<User> findUser = userRepository.findByEmailAndProvider(profile.getEmail(), provider);
         if (findUser.isPresent()) { //이미 존재하는 회원
             User user = findUser.get();
-            return new UserLoginResponseDto(user.getUserIdx(),accessToken,refreshToken );
+            return new UserLoginResponseDto(user.getUserIdx(),accessToken,refreshToken,user.getEmail(),user.getNickName(),user.getProfileImgIdx());
         } else {
             //첫 소셜 로그인 => DB에 회원등록
             User saveUser = saveUser(profile, provider);
-            return new UserLoginResponseDto(saveUser.getUserIdx(),accessToken, refreshToken);
+            return new UserLoginResponseDto(saveUser.getUserIdx(),accessToken, refreshToken,saveUser.getEmail(),saveUser.getNickName(),saveUser.getProfileImgIdx());
         }
     }
 
