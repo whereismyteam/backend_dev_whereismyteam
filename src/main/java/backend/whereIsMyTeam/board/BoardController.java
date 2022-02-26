@@ -71,7 +71,7 @@ public class BoardController {
      */
     @PostMapping("/comments/{boardIdx}/reComments/{parentIdx}")
     public SingleResult<NewCommentResponseDto> createReComment (HttpServletRequest header, @PathVariable("boardIdx") Long boardIdx, @PathVariable("parentIdx") Long parentIdx, @Valid @RequestBody NewCommentRequestDto requestDto) {
-        
+
         if(requestDto.getUserIdx()!=0) {
             //회원 유저인덱스 일치 검증
             User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
@@ -142,16 +142,25 @@ public class BoardController {
     @PostMapping("/posts/likes")
     public SingleResult<PostLikeResponseDto> createPostLike (HttpServletRequest header, @Valid @RequestBody PostLikeRequestDto requestDto) {
 
-        //access token 검증
-        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        jwtTokenProvider.validateAccess(header, user.getEmail());
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx())
+                    .orElseThrow(UserNotExistException::new);
+            if (!user.getEmailAuth())   //이메일 인증 검증
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
 
-        //access 토큰 문제 없으므로 좋아요 등록 or 좋아요 취소
-        PostLikeResponseDto responseDto = postLikeService.pushLikeButton(user,requestDto);
 
-//        return responseService.getSingleResult("즐겨찾기에서 해제되었습니다.");
-//        return responseService.getSingleResult(responseDto);
-        return responseService.getSingleResult(responseDto);
+            //access 토큰 문제 없으므로 좋아요 생성
+            PostLikeResponseDto responseDto = postLikeService.pushLikeButton(user, requestDto);
+
+            return responseService.getSingleResult(responseDto);
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
+
+
     }
 
     /**
@@ -162,22 +171,29 @@ public class BoardController {
     @PatchMapping("/posts/cancel/likes")
     public SingleResult<String> cancelPostLike (HttpServletRequest header,  @Valid @RequestBody PostLikeRequestDto requestDto) {
 
-        //access token 검증
-        User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        jwtTokenProvider.validateAccess(header, user.getEmail());
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx())
+                    .orElseThrow(UserNotExistException::new);
+            if (!user.getEmailAuth())   //이메일 인증 검증
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
 
-        //access 토큰 문제 없으므로 좋아요 좋아요 취소
-        postLikeService.cancelLikeButton(requestDto);
+            //access 토큰 문제 없으므로 -> 좋아요 취소
+            postLikeService.cancelLikeButton(requestDto);
 
-        return responseService.getSingleResult("즐겨찾기에서 해제되었습니다.");
+            return responseService.getSingleResult("즐겨찾기에서 해제되었습니다.");
 
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
 
     //좋아요 갯수 실험
     @GetMapping("/posts/likes/not")
     public SingleResult<PostLikeNumResponseDto> checkPostLikeNum (HttpServletRequest header,  @Valid @RequestBody PostLikeNumRequestDto requestDto) {
 
-        //
+        // '찜 취소'
         PostLikeNumResponseDto responseDto=postLikeService.getPostLikeInfo(requestDto);
 
         return responseService.getSingleResult(responseDto);

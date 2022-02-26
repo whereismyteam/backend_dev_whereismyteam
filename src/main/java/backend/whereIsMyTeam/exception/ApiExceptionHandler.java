@@ -314,11 +314,11 @@ public class ApiExceptionHandler {
 
 
     @ExceptionHandler({PostLikeExistException.class})
-    public  ResponseEntity<Object> handleBoardNotExistException(PostLikeExistException e) {
+    public  ResponseEntity<Object> handlePostLikeExistException(PostLikeExistException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 
         ApiException apiException = new ApiException(
-                ExceptionMessage.POST_LIKE_EXIST_EXCEPTION_MESSAGE,
+                ExceptionMessage.POSTLIKE_ALREADY_EXIST_EXCEPTION_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );
@@ -332,7 +332,7 @@ public class ApiExceptionHandler {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
 
         ApiException apiException = new ApiException(
-                ExceptionMessage.POST_LIKE_NOT_EXIST_EXCEPTION_MESSAGE,
+                ExceptionMessage.POSTLIKE_ALREADY_CANCEL_EXCEPTION_MESSAGE,
                 httpStatus,
                 ZonedDateTime.now(ZoneId.of("Z"))
         );
