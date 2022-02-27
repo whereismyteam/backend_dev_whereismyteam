@@ -3,6 +3,7 @@ package backend.whereIsMyTeam.board.dto;
 import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.repository.CommentRepository;
 import backend.whereIsMyTeam.board.repository.PostLikeCustomRepository;
+import backend.whereIsMyTeam.board.repository.PostLikeCustomRepositoryImpl;
 import backend.whereIsMyTeam.board.service.PostLikeService;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
@@ -17,9 +18,10 @@ import java.util.List;
 @Setter
 public class GetBoardResponseDto {
 
-    PostLikeCustomRepository postLikeCustomRepository;
+
     PostLikeService postLikeService;
     CommentRepository commentRepository;
+    PostLikeCustomRepositoryImpl postLikeRepository;
 
     private Long boardIdx;
     private String category; //프로젝트, 스터디, 대회 중 1
@@ -48,8 +50,14 @@ public class GetBoardResponseDto {
         this.writer= new postUserDto(post.getWriter()); //userImg 구현중
         this.createdAt=post.getCreateAt();
         this.watch=post.getCnt();
-        this.heart=postLikeCustomRepository.findPostLikeNum(post.getBoardIdx());
+        //for debug
+        System.out.println("1");
+        this.heart=postLikeRepository.findPostLikeNum(boardIdx);
+        //for debug
+        System.out.println("2");
         this.isHeart=postLikeService.checkPushedLikeString(post.getWriter().getUserIdx(),post.getBoardIdx());
+        //for debug
+        System.out.println("3");
         this.commentList=postCommentDto.toDtoList(commentRepository.findAllWithMemberAndParentByPostIdOrderByParentIdAscNullsFirstCommentIdAsc(post.getBoardIdx()));
     }
 
@@ -64,8 +72,14 @@ public class GetBoardResponseDto {
         this.writer= new postUserDto(post.getWriter()); //userImg 구현중
         this.createdAt=post.getCreateAt();
         this.watch=post.getCnt();
-        this.heart=postLikeCustomRepository.findPostLikeNum(post.getBoardIdx());
+        //for debug
+        System.out.println("1");
+        this.heart=postLikeRepository.findPostLikeNum(post.getBoardIdx());
+        //for debug
+        System.out.println("2");
         //this.isHeart=postLikeCustomRepository.exist(post.getWriter().getUserIdx(),post.getBoardIdx()).isPresent();
         this.commentList=postCommentDto.toDtoList(commentRepository.findAllWithMemberAndParentByPostIdOrderByParentIdAscNullsFirstCommentIdAsc(post.getBoardIdx()));
+        //for debug
+        System.out.println("3");
     }
 }
