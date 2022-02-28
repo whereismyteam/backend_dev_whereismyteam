@@ -30,6 +30,8 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostLikeService postLikeService;
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -109,12 +111,23 @@ public class BoardService {
             //방문자 수 1 증가
             board.setHitCnt(board.getHitCnt() + 1);
             boardRepository.save(board);
+
+            for(int i=0;i< post.getTechstacks().size();++i){
+                this.stacks.add(i, post.getTechstacks().get(i).getTechStack().getStackName());
+            }
+
             //조회 로직 회원,비회원 구분 해야함
             if(userIdx!=0) { //회원
-                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+                long heart=postLikeRepository.findPostLikeNum(boardIdx);
+                String isHeart=postLikeService.checkPushedLikeString(userIdx,boardIdx);
+                List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),heart,isHeart,commentList);
             }
             else{ //비회원
-                return new GetBoardResponseDto(0,boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+                long heart=postLikeRepository.findPostLikeNum(boardIdx);
+                List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
+
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),heart,commentList);
             }
 
         }
@@ -122,6 +135,8 @@ public class BoardService {
             throw new NullPointerException();
         }
     }
+
+
 
 
 

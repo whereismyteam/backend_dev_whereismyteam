@@ -14,10 +14,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
+//@Setter
 public class postCommentDto {
     private Long commentIdx;
-    private String IsSecret;
+    private String isSecret;
     private String comment;
     private postUserDto member;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")

@@ -4,6 +4,7 @@ import backend.whereIsMyTeam.board.domain.Board;
 import backend.whereIsMyTeam.board.domain.MeetingStatus;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,7 +21,7 @@ public class postDetailDto {
     public postDetailDto(Board post){
         this.location=post.getArea().getName();
         this.number=post.getCapacityNum();
-        this.onoff=post.getMeetingStatus();
+        this.onoff=post.getMeetingStatuses();
         this.parts=post.getRecruitmentPart();
 
     }
