@@ -60,7 +60,7 @@ public class Board extends BaseTimeEntity {
     @ElementCollection(fetch = FetchType.LAZY)
     @Enumerated(EnumType.STRING)
     @Column(name="b_status",nullable = false)
-    private List<BoardStatus> boardStatuses = new ArrayList<>();//= new ArrayList<>();
+    private List<BoardStatus> boardStatuses = new ArrayList<>();
 
 
     //필드: '회의방식' _ (온/온오프/오프라인) 중 1택

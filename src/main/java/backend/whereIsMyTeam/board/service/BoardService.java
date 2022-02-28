@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,22 +113,21 @@ public class BoardService {
             board.setHitCnt(board.getHitCnt() + 1);
             boardRepository.save(board);
 
-            for(int i=0;i< post.getTechstacks().size();++i){
-                this.stacks.add(i, post.getTechstacks().get(i).getTechStack().getStackName());
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
             }
 
+            long heart=postLikeRepository.findPostLikeNum(boardIdx);
+            List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
             //조회 로직 회원,비회원 구분 해야함
             if(userIdx!=0) { //회원
-                long heart=postLikeRepository.findPostLikeNum(boardIdx);
                 String isHeart=postLikeService.checkPushedLikeString(userIdx,boardIdx);
-                List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
-                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),heart,isHeart,commentList);
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks,heart,isHeart,commentList);
             }
             else{ //비회원
-                long heart=postLikeRepository.findPostLikeNum(boardIdx);
-                List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
-
-                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),heart,commentList);
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks,heart,commentList);
             }
 
         }

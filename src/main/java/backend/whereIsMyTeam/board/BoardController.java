@@ -131,10 +131,6 @@ public class BoardController {
         }
         GetBoardResponseDto responseDto=boardService.boardDetail(postIdx,userIdx);
 
-        //for debug
-        System.out.println(responseDto.getHeart());
-        System.out.println(responseDto.getCommentList());
-        System.out.println("5");
         return responseService.getSingleResult(responseDto);
 
     }

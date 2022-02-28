@@ -34,8 +34,8 @@ public class TechStackBoard extends BaseTimeEntity {
     @JoinColumn(name = "board_idx")
     private Board board;
 
-    //오류발생 매핑 문제?
-   // @JsonIgnore
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stack_idx")
     private TechStack techStack;
