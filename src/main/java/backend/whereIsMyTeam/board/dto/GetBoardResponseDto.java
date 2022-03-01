@@ -20,14 +20,14 @@ public class GetBoardResponseDto {
     private String title;
     private postDetailDto detail;
     private String postText;
-    private List<BoardStatus> boardStatus=new ArrayList<>(); //게시물 상태(삭제,임시저장,모집중,모집완료)
+    private String boardStatus; //게시물 상태(삭제,임시저장,모집중,모집완료)
     private postUserDto writer; //게시물 작성자 정보
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
     private Long watch;
     private Long heart; //찜 총 수
     private String isHeart; //해당 유저가 찜 눌렀는지 안눌렀는지
-    private List<postCommentDto> commentList= new ArrayList<>();;
+    private List<postCommentDto> commentList= new ArrayList<>();
 
 
     public GetBoardResponseDto(Board post,List<String> stacks,Long heart, String isHeart,List<postCommentDto> c){
@@ -38,7 +38,7 @@ public class GetBoardResponseDto {
         this.title=post.getTitle();
         this.detail=new postDetailDto(post);
         this.postText=post.getContent();
-        this.boardStatus=post.getBoardStatuses();
+        this.boardStatus=post.getBoardStatuses().get(0).getStatus();
         this.writer= new postUserDto(post.getWriter());
         this.createdAt=post.getCreateAt();
         this.watch=post.getCnt();
@@ -54,7 +54,7 @@ public class GetBoardResponseDto {
         this.title=post.getTitle();
         this.detail=new postDetailDto(post);
         this.postText=post.getContent();
-        this.boardStatus=post.getBoardStatuses();
+        this.boardStatus=post.getBoardStatuses().get(0).getStatus();
         this.writer= new postUserDto(post.getWriter());
         this.createdAt=post.getCreateAt();
         this.watch=post.getCnt();

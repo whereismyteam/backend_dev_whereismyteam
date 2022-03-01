@@ -119,11 +119,12 @@ public class BoardController {
 
     /**
      * 단건 게시물 조회 API
-     * [PUT] users/:userIdx/posts/:postIdx
+     * [PUT] /users/posts/:postIdx
      * @return SingleResult<String>
      */
-    @PutMapping("{userIdx}/posts/{postIdx}")
-    public SingleResult<GetBoardResponseDto> getBoardDetail ( HttpServletRequest header, @PathVariable("userIdx") Long userIdx,@PathVariable("postIdx") Long postIdx) {
+    @PatchMapping("posts/{postIdx}")
+    public SingleResult<GetBoardResponseDto> getBoardDetail ( HttpServletRequest header,@PathVariable("postIdx") Long postIdx,@Valid @RequestBody PatchViewBoardRequestDto patchViewBoardRequestDto) {
+        long userIdx=patchViewBoardRequestDto.getUserIdx();
         if(userIdx!=0){ //회원이라면
             //access token 검증
             User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
@@ -134,6 +135,9 @@ public class BoardController {
         return responseService.getSingleResult(responseDto);
 
     }
+
+
+
 
     /**
      * 찜 생성 API
@@ -199,5 +203,8 @@ public class BoardController {
 
         return responseService.getSingleResult(responseDto);
     }
+
+
+
 
 }
