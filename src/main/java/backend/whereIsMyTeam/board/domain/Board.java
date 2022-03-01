@@ -1,6 +1,8 @@
 package backend.whereIsMyTeam.board.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
+import backend.whereIsMyTeam.exception.Board.WrongInputException;
+import backend.whereIsMyTeam.user.domain.Role;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,6 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -139,5 +142,36 @@ public class Board extends BaseTimeEntity {
     public Long getHitCnt(){
         return this.cnt;
     }
+
+    public void setBoardStatuses(String status){
+        switch (status){
+            case "모집중":
+                if(!this.getBoardStatuses().get(0).getStatus().equals("모집중"))
+                    this.getBoardStatuses().set(0,BoardStatus.RECRUITED);
+                else
+                    throw new WrongInputException();
+                break;
+            case "모집완료":
+                if(!this.getBoardStatuses().get(0).getStatus().equals("모집완료"))
+                    this.getBoardStatuses().set(0,BoardStatus.COMPLETED);
+                else
+                    throw new WrongInputException();
+                break;
+            case "임시저장":
+                if(!this.getBoardStatuses().get(0).getStatus().equals("임시저장"))
+                    this.getBoardStatuses().set(0,BoardStatus.STORED);
+                else
+                    throw new WrongInputException();
+                break;
+            default: //삭제
+                if(!this.getBoardStatuses().get(0).getStatus().equals("삭제"))
+                    this.getBoardStatuses().set(0,BoardStatus.REMOVED);
+                else
+                    throw new WrongInputException();
+                break;
+        }
+    }
+
+
 
 }

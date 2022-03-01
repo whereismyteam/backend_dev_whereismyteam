@@ -4,17 +4,13 @@ import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.board.service.BoardService;
 import backend.whereIsMyTeam.board.service.PostLikeService;
 import backend.whereIsMyTeam.board.dto.*;
-import backend.whereIsMyTeam.exception.User.GoToEmailAuthException;
-import backend.whereIsMyTeam.exception.User.OnlyUserCanUseException;
-import backend.whereIsMyTeam.exception.User.UserNotExistException;
+import backend.whereIsMyTeam.exception.Board.*;
+import backend.whereIsMyTeam.exception.User.*;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
-import backend.whereIsMyTeam.user.dto.EmailAuthRequestDto;
-import backend.whereIsMyTeam.user.dto.UserLoginRequestDto;
-import backend.whereIsMyTeam.user.dto.UserLoginResponseDto;
-import backend.whereIsMyTeam.user.dto.UserLogoutRequestDto;
+
 import backend.whereIsMyTeam.user.service.ResponseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -120,19 +116,53 @@ public class BoardController {
 
     /**
      * 단건 게시물 조회 API
-     * [PUT] users/:userIdx/posts/:postIdx
+     * [PUT] /users/posts/:postIdx
      * @return SingleResult<String>
      */
-    @PutMapping("{userIdx}/posts/{postIdx}")
-    public SingleResult<GetBoardResponseDto> getBoardDetail ( HttpServletRequest header, @PathVariable("userIdx") Long userIdx,@PathVariable("postIdx") Long postIdx) {
+    @PatchMapping("posts/{postIdx}")
+    public SingleResult<GetBoardResponseDto> getBoardDetail ( HttpServletRequest header,@PathVariable("postIdx") Long postIdx,@Valid @RequestBody PatchViewBoardRequestDto patchViewBoardRequestDto) {
+        long userIdx=patchViewBoardRequestDto.getUserIdx();
         if(userIdx!=0){ //회원이라면
             //access token 검증
             User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
             jwtTokenProvider.validateAccess(header, user.getEmail());
         }
         GetBoardResponseDto responseDto=boardService.boardDetail(postIdx,userIdx);
+
         return responseService.getSingleResult(responseDto);
 
+    }
+
+
+    /**
+     * 게시글 상태 변경 API
+     * [PATCH] /users/posts/:postIdx/status
+     * @return SingleResult<String>
+     */
+    @PatchMapping("/posts/{postIdx}/status")
+    public SingleResult<String> changeBoardStatus (HttpServletRequest header,@PathVariable("postIdx") Long postIdx, @Valid @RequestBody PatchStatusBoardRequestDto requestDto) {
+
+        //status input 검증
+        if(!(requestDto.getStatus().equals("모집중") || requestDto.getStatus().equals("모집완료") || requestDto.getStatus().equals("임시저장") || requestDto.getStatus().equals("삭제"))){
+            throw new WrongInputException();
+        }
+
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if (!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+
+            //access 토큰 문제 없으므로 -> 좋아요 취소
+            boardService.changeBoardStatus(postIdx,requestDto);
+
+            return responseService.getSingleResult("게시물 상태가 변경됐습니다.");
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
 
     /**
@@ -182,7 +212,7 @@ public class BoardController {
 
     /**
      * 찜 취소 API
-     * [POST] /users/posts/cancel/likes
+     * [PATCH] /users/posts/cancel/likes
      * @return SingleResult<String>
      */
     @PatchMapping("/posts/cancel/likes")
@@ -215,5 +245,8 @@ public class BoardController {
 
         return responseService.getSingleResult(responseDto);
     }
+
+
+
 
 }

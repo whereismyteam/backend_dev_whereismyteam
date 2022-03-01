@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostLikeService postLikeService;
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -46,19 +49,12 @@ public class BoardService {
 
         comment.confirmWriter(userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new));
         comment.confirmBoard(boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new));
-       // Optional<Comment> empty=Optional.ofNullable(comment);
         comment.confirmParentEmpty();
 
         return NewCommentResponseDto.builder()
                 .commentIdx(comment.getCommentIdx())
                 .build();
-        /*
-        User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        Board board = boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new);
-        Comment parent = Optional.ofNullable(null)
 
-        Comment comment = commentRepository.save(new Comment(requestDto.getContent(),requestDto.getIsSecret(), user, board, parent));
-        comment.publishCreatedEvent(publisher);*/
     }
 
     /**
@@ -110,12 +106,22 @@ public class BoardService {
             //방문자 수 1 증가
             board.setHitCnt(board.getHitCnt() + 1);
             boardRepository.save(board);
+
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+
+            long heart=postLikeRepository.findPostLikeNum(boardIdx);
+            List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
             //조회 로직 회원,비회원 구분 해야함
             if(userIdx!=0) { //회원
-                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+                String isHeart=postLikeService.checkPushedLikeString(userIdx,boardIdx);
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks,heart,isHeart,commentList);
             }
             else{ //비회원
-                return new GetBoardResponseDto(0,boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new));
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks,heart,commentList);
             }
 
         }
@@ -123,6 +129,33 @@ public class BoardService {
             throw new NullPointerException();
         }
     }
+
+    /**
+     * 게시물 상태 변경 진행
+     */
+
+    @Transactional
+    public void changeBoardStatus(Long boardIdx,PatchStatusBoardRequestDto requestDto) {
+        //게시물 인덱스 검증
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+
+        if(optional.isPresent()) { //게시물 존재
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(requestDto.getUserIdx())){
+                throw new NotWriterException();
+            }
+            //BoardStatus b=board.getBoardStatuses().get(0);
+            //게시물 상태 변경
+            board.setBoardStatuses(requestDto.getStatus());
+            boardRepository.save(board);
+        }
+
+        else{ //게시물 존재 x
+            throw new NullPointerException();
+        }
+    }
+
 
 
     /**

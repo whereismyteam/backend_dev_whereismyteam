@@ -172,9 +172,7 @@ public class UserController {
         if(requestDto.getUserIdx()!=0) {
             //회원 유저인덱스 일치 검증
             User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-            //이메일 인증 검증
-            if(!user.getEmailAuth())
-                throw new GoToEmailAuthException();
+
             //access token 검증
             jwtTokenProvider.validateAccess(header, user.getEmail());
 
