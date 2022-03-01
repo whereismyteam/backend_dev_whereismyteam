@@ -48,19 +48,12 @@ public class BoardService {
 
         comment.confirmWriter(userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new));
         comment.confirmBoard(boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new));
-       // Optional<Comment> empty=Optional.ofNullable(comment);
         comment.confirmParentEmpty();
 
         return NewCommentResponseDto.builder()
                 .commentIdx(comment.getCommentIdx())
                 .build();
-        /*
-        User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-        Board board = boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new);
-        Comment parent = Optional.ofNullable(null)
 
-        Comment comment = commentRepository.save(new Comment(requestDto.getContent(),requestDto.getIsSecret(), user, board, parent));
-        comment.publishCreatedEvent(publisher);*/
     }
 
     /**
@@ -136,6 +129,31 @@ public class BoardService {
         }
     }
 
+    /**
+     * 게시물 상태 변경 진행
+     */
+
+    @Transactional
+    public void changeBoardStatus(Long boardIdx,PatchStatusBoardRequestDto requestDto) {
+        //게시물 인덱스 검증
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+
+        if(optional.isPresent()) { //게시물 존재
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(requestDto.getUserIdx())){
+                throw new NotWriterException();
+            }
+            //BoardStatus b=board.getBoardStatuses().get(0);
+            //게시물 상태 변경
+            board.setBoardStatuses(requestDto.getStatus());
+            boardRepository.save(board);
+        }
+
+        else{ //게시물 존재 x
+            throw new NullPointerException();
+        }
+    }
 
 
 

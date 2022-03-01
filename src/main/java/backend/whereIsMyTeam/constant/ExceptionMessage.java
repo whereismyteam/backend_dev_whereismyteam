@@ -53,4 +53,8 @@ public class ExceptionMessage {
     public static String GET_EMAIL_AUTH_EXCEPTION_MESSAGE="이메일 인증을 해주세요.";
     public static String ONLY_USER_CAN_USE_MESSAGE="회원만 사용가능한 API 입니다.";
 
+    //게시물 상태 변경
+    public static String WRONG_INPUT_MESSAGE="잘못된 요청 양식입니다.";
+    public static String ONLY_WRITER_CAN_MESSAGE="글 작성자 외엔 권한이 없습니다.";
+
 }
