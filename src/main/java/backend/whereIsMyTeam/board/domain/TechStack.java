@@ -35,4 +35,5 @@ public class TechStack extends BaseTimeEntity {
     @OneToMany(mappedBy = "techStack")
     private List<TechStackBoard> boards = new ArrayList<>();
 
+
 }

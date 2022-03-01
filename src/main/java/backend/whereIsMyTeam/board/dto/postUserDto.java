@@ -7,18 +7,15 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
+//@Setter
 public class postUserDto {
     private Long userIdx;
-    //private Long profileImgIdx; //userImg로 바꿔야함
-    private String userImg;
+    private Long profileImgIdx;
     private String userName;
-    private Boolean emailAuth;
 
     public postUserDto(User user){
         this.userIdx=user.getUserIdx();
-        //this.userImg=user.getProfileImgIdx();
+        this.profileImgIdx=user.getProfileImgIdx();
         this.userName=user.getNickName();
-        this.emailAuth=user.getEmailAuth();
     }
 }
