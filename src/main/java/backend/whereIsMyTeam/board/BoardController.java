@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -133,6 +134,22 @@ public class BoardController {
         return responseService.getSingleResult(responseDto);
 
     }
+
+    /**
+     * 카테고리 별 게시물 목록 조회 API
+     * [GET] users/:userIdx/posts/:postIdx
+     * @return SingleResult<String>
+     */
+    @GetMapping("{categoryIdx}")
+    public List<MainBoardListResDto> getBoardAll (HttpServletRequest header,
+                                                  @PathVariable("categoryIdx") Long categoryIdx) {
+
+        return boardService.findAllBoards(categoryIdx);
+//        MainBoardListResDto responseDto=boardService.findAllBoards(categoryIdx);
+        //return responseService.getSingleResult(responseDto);
+
+    }
+
 
     /**
      * 찜 생성 API

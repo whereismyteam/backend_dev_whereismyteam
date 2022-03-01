@@ -20,7 +20,7 @@ public class postDetailDto {
     public postDetailDto(Board post){
         this.location=post.getArea().getName();
         this.number=post.getCapacityNum();
-        this.onoff=post.getMeetingStatus();
+        this.onoff=post.getMeetingStatuses();
         this.parts=post.getRecruitmentPart();
 
     }

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -123,6 +124,19 @@ public class BoardService {
         }
     }
 
+
+    /**
+     * 게시물 전체 조회
+     * @return MainBoardListResDto
+     */
+    @Transactional(readOnly = true)
+    public List<MainBoardListResDto> findAllBoards(Long categoryIdx) {
+        List<Board> optional = boardRepository.findAllByCategory(categoryIdx);
+        return boardRepository.findAllByCategory(categoryIdx).stream()
+                .map(MainBoardListResDto::new)
+                .collect(Collectors.toList());
+
+    }
 
 
 //    /**
