@@ -114,6 +114,19 @@ public class BoardController {
     }
 
     /**
+     * 댓글 총 갯수 확인 API
+     * @return SingleResult<GetCommentNumResDto>
+     */
+    @GetMapping("/posts/{postIdx}/commentNum")
+    public SingleResult<GetCommentNumResDto> getCommentNum ( @PathVariable("postIdx") Long boardIdx) {
+
+        GetCommentNumResDto responseDto=boardService.getCommentNum(boardIdx);
+
+        return responseService.getSingleResult(responseDto);
+    }
+
+
+    /**
      * 단건 게시물 조회 API
      * [PUT] /users/posts/:postIdx
      * @return SingleResult<String>
@@ -163,6 +176,43 @@ public class BoardController {
         }else //유저가 아니므로 사용 불가, 오류 처리
             throw new OnlyUserCanUseException();
     }
+
+    /**
+     * 게시글 수정 API
+     * [PATCH] /users/posts/:postIdx/fix
+     * @return SingleResult<String>
+     */
+    @PatchMapping("/posts/{postIdx}/status/fix")
+    public SingleResult<String> updateBoard (HttpServletRequest header,@PathVariable("postIdx") Long postIdx, @Valid @RequestBody PatchUpdatePostRequestDto requestDto) {
+
+        //회의 방식 input 검증
+        if(!(requestDto.getOnOff().equals("온라인")||requestDto.getOnOff().equals("오프라인")||requestDto.getOnOff().equals("온/오프"))){
+            throw new WrongInputException();
+        }
+        //분야 input 검증
+        if(!(requestDto.getCategory().equals("프로젝트")||requestDto.getCategory().equals("대회")||requestDto.getCategory().equals("스터디"))){
+            throw new WrongInputException();
+        }
+
+
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if (!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+
+            //access 토큰 문제 없으므로 -> 좋아요 취소
+            boardService.updateBoard(postIdx,requestDto);
+
+            return responseService.getSingleResult("게시물이 수정됐습니다.");
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
+    }
+
 
     /**
      * 찜 생성 API
