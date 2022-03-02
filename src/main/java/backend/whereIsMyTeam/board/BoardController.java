@@ -315,6 +315,36 @@ public class BoardController {
             throw new OnlyUserCanUseException();
     }
 
+    /**
+     * 임시 저장 게시글 삭제 API
+     * [PATCH] /users/prePosts/:postIdx/status
+     * @return SingleResult<String>
+     */
+    @PatchMapping("/prePosts/{postIdx}/status")
+    public SingleResult<String> deletePrePost (HttpServletRequest header,@PathVariable("postIdx") Long postIdx, @Valid @RequestBody PatchPrePostReqDto requestDto) {
+
+        //임시저장 맞는지 검증
+        Board board = boardRepository.findByBoardIdx(postIdx).orElseThrow(BoardNotExistException::new);
+        if(!board.getBoardStatuses().get(0).getStatus().equals("임시저장"))
+            throw new NotMatchBoardCateException();
+
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if (!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+
+            //access 토큰 문제 없으므로 로직 진행
+            boardService.deletePrePost(postIdx,requestDto);
+
+            return responseService.getSingleResult("임시 저장 게시물이 삭재됐습니다.");
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
+    }
 
 
 }

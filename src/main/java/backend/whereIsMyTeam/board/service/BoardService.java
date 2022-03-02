@@ -246,6 +246,30 @@ public class BoardService {
     }
 
 
+    /**
+     * 임시 저장 삭제 진행
+     */
+
+    @Transactional
+    public void deletePrePost(Long boardIdx,PatchPrePostReqDto requestDto) {
+        //게시물 인덱스 검증
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+
+        if(optional.isPresent()) { //게시물 존재
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(requestDto.getUserIdx())){
+                throw new NotWriterException();
+            }
+
+            board.setBoardStatuses("삭제");
+            boardRepository.save(board);
+        }
+
+        else{ //게시물 존재 x
+            throw new NullPointerException();
+        }
+    }
 
 
 //    /**
