@@ -190,6 +190,7 @@ public class Board extends BaseTimeEntity {
         this.capacityNum=requestDto.getCapacityNum();
         this.recruitmentPart=requestDto.getRecruitmentPart();
         this.area=a;
+       // this.techstacks=t;
     }
 
 }

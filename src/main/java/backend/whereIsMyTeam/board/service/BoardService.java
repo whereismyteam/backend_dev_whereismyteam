@@ -36,6 +36,8 @@ public class BoardService {
     private final PostLikeService postLikeService;
     private final CategoryRepository categoryRepository;
     private final AreaRepository areaRepository;
+    private final TechStackRepository techStackRepository;
+    private final TechStackBoardRepository techStackBoardRepository;
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -191,6 +193,22 @@ public class BoardService {
             Category c=categoryRepository.findByCategoryName(requestDto.getCategory()).orElseThrow(WrongInputException::new);
             Area a=areaRepository.findByName(requestDto.getArea()).orElseThrow(WrongInputException::new);
 
+            //기존 스택리스트 삭제
+            for(int i=0;i<board.getTechstacks().size();++i){
+              TechStackBoard deleted=  board.getTechstacks().get(i);
+              techStackBoardRepository.delete(deleted);
+
+            }
+
+
+            List<TechStackBoard> techstacks=new ArrayList<>(requestDto.getTechstacks().size());
+            //새로운 스택리스트 주입
+            for(int i=0;i<requestDto.getTechstacks().size();++i){
+                TechStack ts=techStackRepository.findByStackName(requestDto.getTechstacks().get(i));
+                TechStackBoard t = new TechStackBoard(ts,board);
+                techstacks.add(t);
+                techStackBoardRepository.save(techstacks.get(i));
+            }
 
             board.updateBoard(requestDto,c,a);
             boardRepository.save(board);

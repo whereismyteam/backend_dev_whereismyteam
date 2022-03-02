@@ -1,9 +1,6 @@
 package backend.whereIsMyTeam.board.dto;
 
-import backend.whereIsMyTeam.board.domain.Area;
-import backend.whereIsMyTeam.board.domain.BoardStatus;
-import backend.whereIsMyTeam.board.domain.Category;
-import backend.whereIsMyTeam.board.domain.MeetingStatus;
+import backend.whereIsMyTeam.board.domain.*;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
@@ -37,6 +34,10 @@ public class PatchUpdatePostRequestDto {
 
     @NotNull(message = "지역을 입력해주세요.")
     private String area;
+
+    @NotNull(message = "스택 리스트를 입력해주세요.")
+    private final List<String> techstacks = new ArrayList<>();
+
 
 
 }
