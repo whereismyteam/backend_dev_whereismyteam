@@ -191,11 +191,38 @@ public class BoardService {
             Category c=categoryRepository.findByCategoryName(requestDto.getCategory()).orElseThrow(WrongInputException::new);
             Area a=areaRepository.findByName(requestDto.getArea()).orElseThrow(WrongInputException::new);
 
+
             board.updateBoard(requestDto,c,a);
             boardRepository.save(board);
         }
 
         else{ //게시물 존재 x 오류 처리
+            throw new NullPointerException();
+        }
+    }
+
+    /**
+     * 임시 저장 게시물 조회
+     * @return GetPrePostResDto
+     */
+    @Transactional
+    public GetPrePostResDto PreBoardDetail(Long userIdx,Long boardIdx) {
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+        if(optional.isPresent()) {
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(userIdx)){
+                throw new NotWriterException();
+            }
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+            return new GetPrePostResDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks);
+
+        }
+        else {
             throw new NullPointerException();
         }
     }

@@ -33,7 +33,7 @@ public class PatchUpdatePostRequestDto {
     private Long capacityNum;
 
     @NotNull(message = "모집 파트를 입력해주세요.")
-    private List<String> recruitmentPart = new ArrayList<>();
+    private final List<String> recruitmentPart = new ArrayList<>();
 
     @NotNull(message = "지역을 입력해주세요.")
     private String area;
