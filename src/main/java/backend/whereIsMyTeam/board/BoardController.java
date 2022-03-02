@@ -1,9 +1,9 @@
 package backend.whereIsMyTeam.board;
 
+import backend.whereIsMyTeam.board.domain.Board;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.board.service.BoardService;
 import backend.whereIsMyTeam.board.service.PostLikeService;
-import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.*;
 import backend.whereIsMyTeam.result.SingleResult;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -167,17 +168,22 @@ public class BoardController {
 
     /**
      * 카테고리 별 게시물 목록 조회 API
-     * [GET] users/:userIdx/posts/:postIdx
+     * [GET] users/posts/:categoryIdx
      * @return SingleResult<String>
      */
-    @GetMapping("{categoryIdx}")
-    public List<MainBoardListResDto> getBoardAll (HttpServletRequest header,
-                                                  @PathVariable("categoryIdx") Long categoryIdx) {
+    @GetMapping("posts/{categoryIdx}")
+    public SingleResult<List<GetBoardResponseDto>> getBoardAll (HttpServletRequest header,
+                                                  @RequestParam Long categoryIdx) {
 
-        return boardService.findAllBoards(categoryIdx);
+        List<Board> boardList = boardService.findAllBoards(categoryIdx);
+        List<GetBoardResponseDto> responseDtoList = new ArrayList<>();
+        for (Board board : boardList){
+            GetBoardResponseDto responseDto = new GetBoardResponseDto(board);
+            responseDtoList.add(responseDto);
+        }
 //        MainBoardListResDto responseDto=boardService.findAllBoards(categoryIdx);
         //return responseService.getSingleResult(responseDto);
-
+        return responseService.getSingleResult(responseDtoList);
     }
 
 

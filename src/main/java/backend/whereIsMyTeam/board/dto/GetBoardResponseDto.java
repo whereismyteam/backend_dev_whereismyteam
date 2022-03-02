@@ -64,4 +64,6 @@ public class GetBoardResponseDto {
     }
 
 
+    public GetBoardResponseDto(Board board) {
+    }
 }

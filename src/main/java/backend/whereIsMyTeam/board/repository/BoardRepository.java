@@ -1,6 +1,7 @@
 package backend.whereIsMyTeam.board.repository;
 
 import backend.whereIsMyTeam.board.domain.Board;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,8 +16,10 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
     @EntityGraph(attributePaths = {"writer"})
     Optional<Board> findWithWriterByBoardIdx(Long userIdx);
 
-
-    List<Board> findAllByCategory(long categoryIdx);
+    //https://ykh6242.tistory.com/105 참고
+    //네이티브 SQL로 조회
+    @Query(value = "select b from Board b where b.category.categoryIdx = :idx")
+    List<Board> findAllByCategory(@Param("idx")long categoryIdx);
 
 //    @Query("select distinct Board " +
 //            "from Feed as feed " +
