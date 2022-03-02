@@ -1,6 +1,8 @@
 package backend.whereIsMyTeam.board.domain;
 
 import backend.whereIsMyTeam.config.BaseTimeEntity;
+import backend.whereIsMyTeam.exception.Board.WrongInputException;
+import backend.whereIsMyTeam.user.domain.Role;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,6 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -52,7 +55,7 @@ public class Board extends BaseTimeEntity {
      *  조건) ['인기순' 나열 기준]
      *  기능 요구사항: 클릭 시 중복되지 않도록 방법이 필요
     **/
-    @Column(name = "board_cnt",nullable = false)
+    @Column(name = "view_cnt",nullable = false)
     @ColumnDefault("0")
     private Long cnt;
 
@@ -60,14 +63,14 @@ public class Board extends BaseTimeEntity {
     @ElementCollection(fetch = FetchType.LAZY)
     @Enumerated(EnumType.STRING)
     @Column(name="b_status",nullable = false)
-    private List<BoardStatus> boardStatuses = new ArrayList<>();//= new ArrayList<>();
+    private List<BoardStatus> boardStatuses = new ArrayList<>();
 
 
     //필드: '회의방식' _ (온/온오프/오프라인) 중 1택
     @ElementCollection(fetch = FetchType.LAZY)
-    @Enumerated(value = EnumType.STRING)
-    @Column(nullable = false)
-    private List<MeetingStatus> meetingStatus = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(name="b_meetingStatus",nullable = false)
+    private List<MeetingStatus> meetingStatuses = new ArrayList<>();
 
 
     //필드: '분야'(카테고리) _ (프로젝트,대회,스터디)
@@ -139,5 +142,36 @@ public class Board extends BaseTimeEntity {
     public Long getHitCnt(){
         return this.cnt;
     }
+
+    public void setBoardStatuses(String status){
+        switch (status){
+            case "모집중":
+                if(!this.getBoardStatuses().get(0).getStatus().equals("모집중"))
+                    this.getBoardStatuses().set(0,BoardStatus.RECRUITED);
+                else
+                    throw new WrongInputException();
+                break;
+            case "모집완료":
+                if(!this.getBoardStatuses().get(0).getStatus().equals("모집완료"))
+                    this.getBoardStatuses().set(0,BoardStatus.COMPLETED);
+                else
+                    throw new WrongInputException();
+                break;
+            case "임시저장":
+                if(!this.getBoardStatuses().get(0).getStatus().equals("임시저장"))
+                    this.getBoardStatuses().set(0,BoardStatus.STORED);
+                else
+                    throw new WrongInputException();
+                break;
+            default: //삭제
+                if(!this.getBoardStatuses().get(0).getStatus().equals("삭제"))
+                    this.getBoardStatuses().set(0,BoardStatus.REMOVED);
+                else
+                    throw new WrongInputException();
+                break;
+        }
+    }
+
+
 
 }

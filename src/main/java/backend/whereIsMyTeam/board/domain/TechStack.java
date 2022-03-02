@@ -25,7 +25,7 @@ public class TechStack extends BaseTimeEntity {
     @Column(name = "stack_idx",nullable = false, unique = true)
     private Long stackIdx;
 
-    @Column(nullable = false)
+    @Column(name = "stack_name",nullable = false)
     private String stackName;
 
     @Column(nullable = false, length=2)
@@ -34,4 +34,6 @@ public class TechStack extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "techStack")
     private List<TechStackBoard> boards = new ArrayList<>();
+
+
 }

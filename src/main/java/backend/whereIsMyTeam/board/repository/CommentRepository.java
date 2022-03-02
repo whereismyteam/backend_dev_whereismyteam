@@ -13,6 +13,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     Optional<Comment> findByCommentIdx(long commentIdx);
 
-    @Query("select c from Comment c join fetch c.user left join fetch c.parent where c.board.boardIdx = :postIdx order by c.parent.commentIdx asc nulls first, c.commentIdx asc")
-    List<Comment> findAllWithMemberAndParentByPostIdOrderByParentIdAscNullsFirstCommentIdAsc(@Param("postIdx") Long postId);
+    @Query("select c from Comment c join fetch c.user left join fetch c.parent where c.board.boardIdx = :boardIdx order by c.parent.commentIdx asc nulls first, c.commentIdx asc")
+    List<Comment> findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(@Param("boardIdx") Long boardIdx);
 }
