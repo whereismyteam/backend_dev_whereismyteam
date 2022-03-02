@@ -1,5 +1,6 @@
 package backend.whereIsMyTeam.board.domain;
 
+import backend.whereIsMyTeam.board.dto.PatchUpdatePostRequestDto;
 import backend.whereIsMyTeam.config.BaseTimeEntity;
 import backend.whereIsMyTeam.exception.Board.WrongInputException;
 import backend.whereIsMyTeam.user.domain.Role;
@@ -143,6 +144,7 @@ public class Board extends BaseTimeEntity {
         return this.cnt;
     }
 
+    //게시물 상태 변경 API
     public void setBoardStatuses(String status){
         switch (status){
             case "모집중":
@@ -172,6 +174,21 @@ public class Board extends BaseTimeEntity {
         }
     }
 
+    //게시물 수정 API
+    public void updateBoard(PatchUpdatePostRequestDto requestDto,Category c,Area a){
 
+        this.title=requestDto.getTitle();
+        this.content=requestDto.getContent();
+        //회의 방식
+        if(requestDto.getOnOff().equals("온라인"))
+            this.meetingStatuses.set(0,MeetingStatus.ONLINE);
+        else if(requestDto.getOnOff().equals("오프라인"))
+            this.meetingStatuses.set(0,MeetingStatus.OFFLINE);
+        else
+            this.meetingStatuses.set(0,MeetingStatus.BLENDED);
+        this.category=c;
+        this.capacityNum=requestDto.getCapacityNum();
+        this.area=a;
+    }
 
 }
