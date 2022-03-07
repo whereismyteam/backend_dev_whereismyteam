@@ -5,7 +5,6 @@ import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.board.repository.BoardRepository;
 import backend.whereIsMyTeam.board.service.BoardService;
 import backend.whereIsMyTeam.board.service.PostLikeService;
-import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.*;
 import backend.whereIsMyTeam.result.SingleResult;
@@ -22,6 +21,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 @Slf4j
 @RestController
@@ -130,6 +132,41 @@ public class BoardController {
 
 
     /**
+     * 게시물 목록 조회 API
+     * [GET] users/homes/:categoryIdx
+     * @return SingleResult<String>
+     *     /{categoryIdx}
+     **/
+    @GetMapping("/homes")
+    public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
+                                                                     @RequestParam(value = "categoryIdx") Long categoryIdx,
+                                                                @Valid @RequestBody BoardListRequestDto reqDto) {
+
+        long userIdx = reqDto.getUserIdx();
+        if(userIdx!=0){ //회원이라면
+            //access token 검증
+            User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+        }
+
+        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(reqDto.getUserIdx(),categoryIdx);
+
+        return responseService.getSingleResult(listDto);
+
+
+//        try {
+//            long userIdx = reqDto.getUserIdx();
+//            List<MainBoardListResponseDto> listDto = boardService.findAllBoards(reqDto.getUserIdx(),categoryIdx);
+//
+//            return responseService.getSingleResult(listDto);
+//        }catch (Exception e)
+//        {
+//            e.printStackTrace();
+//            throw e;
+//        }
+    }
+
+    /**
      * 단건 게시물 조회 API
      * [PUT] /users/posts/:postIdx
      * @return SingleResult<String>
@@ -220,6 +257,9 @@ public class BoardController {
         }else //유저가 아니므로 사용 불가, 오류 처리
             throw new OnlyUserCanUseException();
     }
+
+
+
 
 
     /**
