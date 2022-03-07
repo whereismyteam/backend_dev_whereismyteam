@@ -1,7 +1,7 @@
 package backend.whereIsMyTeam.board.repository;
 
 import backend.whereIsMyTeam.board.domain.PostLike;
-
+import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 /**
@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface PostLikeCustomRepository {
 
     Optional<PostLike> exist(Long userIdx, Long boardIdx);
-    long findPostLikeNum(Long boardIdx);
+    long findPostLikeNum(@Param("board_idx") Long boardIdx);
 }
