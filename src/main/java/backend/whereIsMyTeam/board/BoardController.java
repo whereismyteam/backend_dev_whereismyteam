@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Slf4j
 @RestController
@@ -116,6 +117,54 @@ public class BoardController {
     }
 
     /**
+     * 댓글 총 갯수 확인 API
+     * @return SingleResult<GetCommentNumResDto>
+     */
+    @GetMapping("/posts/{postIdx}/commentNum")
+    public SingleResult<GetCommentNumResDto> getCommentNum ( @PathVariable("postIdx") Long boardIdx) {
+
+        GetCommentNumResDto responseDto=boardService.getCommentNum(boardIdx);
+
+        return responseService.getSingleResult(responseDto);
+    }
+
+
+    /**
+     * 게시물 목록 조회 API
+     * [GET] users/homes/:categoryIdx
+     * @return SingleResult<String>
+     *     /{categoryIdx}
+     **/
+    @GetMapping("/homes")
+    public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
+                                                                     @RequestParam(value = "categoryIdx") Long categoryIdx,
+                                                                @Valid @RequestBody BoardListRequestDto reqDto) {
+
+        long userIdx = reqDto.getUserIdx();
+        if(userIdx!=0){ //회원이라면
+            //access token 검증
+            User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+        }
+
+        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(reqDto.getUserIdx(),categoryIdx);
+
+        return responseService.getSingleResult(listDto);
+
+
+//        try {
+//            long userIdx = reqDto.getUserIdx();
+//            List<MainBoardListResponseDto> listDto = boardService.findAllBoards(reqDto.getUserIdx(),categoryIdx);
+//
+//            return responseService.getSingleResult(listDto);
+//        }catch (Exception e)
+//        {
+//            e.printStackTrace();
+//            throw e;
+//        }
+    }
+
+    /**
      * 단건 게시물 조회 API
      * [PUT] /users/posts/:postIdx
      * @return SingleResult<String>
@@ -167,24 +216,43 @@ public class BoardController {
     }
 
     /**
-     * 카테고리 별 게시물 목록 조회 API
-     * [GET] users/posts/:categoryIdx
+     * 게시글 수정 API
+     * [PATCH] /users/posts/:postIdx/fix
      * @return SingleResult<String>
      */
-    @GetMapping("posts/{categoryIdx}")
-    public SingleResult<List<GetBoardResponseDto>> getBoardAll (HttpServletRequest header,
-                                                  @RequestParam Long categoryIdx) {
+    @PatchMapping("/posts/{postIdx}/status/fix")
+    public SingleResult<String> updateBoard (HttpServletRequest header,@PathVariable("postIdx") Long postIdx, @Valid @RequestBody PatchUpdatePostRequestDto requestDto) {
 
-        List<Board> boardList = boardService.findAllBoards(categoryIdx);
-        List<GetBoardResponseDto> responseDtoList = new ArrayList<>();
-        for (Board board : boardList){
-            GetBoardResponseDto responseDto = new GetBoardResponseDto(board);
-            responseDtoList.add(responseDto);
+        //회의 방식 input 검증
+        if(!(requestDto.getOnOff().equals("온라인")||requestDto.getOnOff().equals("오프라인")||requestDto.getOnOff().equals("온/오프"))){
+            throw new WrongInputException();
         }
-//        MainBoardListResDto responseDto=boardService.findAllBoards(categoryIdx);
-        //return responseService.getSingleResult(responseDto);
-        return responseService.getSingleResult(responseDtoList);
+        //분야 input 검증
+        if(!(requestDto.getCategory().equals("프로젝트")||requestDto.getCategory().equals("대회")||requestDto.getCategory().equals("스터디"))){
+            throw new WrongInputException();
+        }
+
+
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if (!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+
+            //access 토큰 문제 없으므로 -> 좋아요 취소
+            boardService.updateBoard(postIdx,requestDto);
+
+            return responseService.getSingleResult("게시물이 수정됐습니다.");
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
     }
+
+
+
 
 
     /**
