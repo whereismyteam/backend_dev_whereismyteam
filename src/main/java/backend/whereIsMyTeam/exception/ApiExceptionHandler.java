@@ -404,6 +404,19 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
+    @ExceptionHandler({NotMatchBoardCateException.class})
+    public  ResponseEntity<Object> handleNotMatchBoardCateException(NotMatchBoardCateException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.NOT_MATCH_POSTCATE_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
     @ExceptionHandler({NotBoardStatusException.class})
     public  ResponseEntity<Object> handleRefreshNotExistException(NotBoardStatusException e) {
         HttpStatus httpStatus = HttpStatus.BAD_REQUEST;

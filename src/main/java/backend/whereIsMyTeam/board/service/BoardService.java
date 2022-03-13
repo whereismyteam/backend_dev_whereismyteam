@@ -8,6 +8,7 @@ import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.exception.User.UserNotFoundException;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.user.UserRepository;
+import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
@@ -34,6 +35,8 @@ public class BoardService {
     private final PostLikeService postLikeService;
     private final CategoryRepository categoryRepository;
     private final AreaRepository areaRepository;
+    private final TechStackRepository techStackRepository;
+    private final TechStackBoardRepository techStackBoardRepository;
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -243,6 +246,23 @@ public class BoardService {
             Category c=categoryRepository.findByCategoryName(requestDto.getCategory()).orElseThrow(WrongInputException::new);
             Area a=areaRepository.findByName(requestDto.getArea()).orElseThrow(WrongInputException::new);
 
+            //기존 스택리스트 삭제
+            for(int i=0;i<board.getTechstacks().size();++i){
+              TechStackBoard deleted=  board.getTechstacks().get(i);
+              techStackBoardRepository.delete(deleted);
+
+            }
+
+
+            List<TechStackBoard> techstacks=new ArrayList<>(requestDto.getTechstacks().size());
+            //새로운 스택리스트 주입
+            for(int i=0;i<requestDto.getTechstacks().size();++i){
+                TechStack ts=techStackRepository.findByStackName(requestDto.getTechstacks().get(i));
+                TechStackBoard t = new TechStackBoard(ts,board);
+                techstacks.add(t);
+                techStackBoardRepository.save(techstacks.get(i));
+            }
+
             board.updateBoard(requestDto,c,a);
             boardRepository.save(board);
         }
@@ -252,9 +272,93 @@ public class BoardService {
         }
     }
 
+    /**
+     * 임시 저장 게시물 단건 조회
+     * @return GetPrePostResDto
+     */
+    @Transactional
+    public GetPrePostResDto PreBoardDetail(Long userIdx,Long boardIdx) {
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+        if(optional.isPresent()) {
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(userIdx)){
+                throw new NotWriterException();
+            }
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+            return new GetPrePostResDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks);
+
+        }
+        else {
+            throw new NullPointerException();
+        }
+    }
 
 
+    /**
+     * 임시 저장 삭제 진행
+     */
 
+    @Transactional
+    public void deletePrePost(Long boardIdx,PatchPrePostReqDto requestDto) {
+        //게시물 인덱스 검증
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+
+        if(optional.isPresent()) { //게시물 존재
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(requestDto.getUserIdx())){
+                throw new NotWriterException();
+            }
+
+            board.setBoardStatuses("삭제");
+            boardRepository.save(board);
+        }
+
+        else{ //게시물 존재 x
+            throw new NullPointerException();
+        }
+    }
+
+    /**
+     * 임시저장 게시물 목록 전체 조회
+     * @return GetPrePostListResDto
+     * [조건] : 게시물 상태는 "임시저장"
+     */
+    @Transactional
+    public GetPrePostListResDto findPreBoards(User user ) {
+
+        long num=0;
+
+        //해당 유저 임시 저장 게시물들 가져오기
+        List<Board> boardList = boardRepository.findByWriter(user);
+
+
+        //MainDto 타입의 반환 'List'로 생성
+        List<prePostInfoDto> responseDtoList = new ArrayList<>();
+
+        for (Board board : boardList){
+
+            //임시 저장 아니면 진행 X
+            if(!(board.getBoardStatuses().get(0).getCode()==0 ))
+                continue;
+
+            prePostInfoDto newResponseDto;
+
+            newResponseDto = new prePostInfoDto(board.getTitle(),board.getCreateAt());
+
+            responseDtoList.add(newResponseDto);
+            num++;
+        }
+        //게시물 전체수 조회
+
+        return new GetPrePostListResDto(num,responseDtoList);
+
+    }
 
 
 //    /**

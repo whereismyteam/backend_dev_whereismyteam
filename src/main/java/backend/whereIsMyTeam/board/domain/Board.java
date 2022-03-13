@@ -188,7 +188,9 @@ public class Board extends BaseTimeEntity {
             this.meetingStatuses.set(0,MeetingStatus.BLENDED);
         this.category=c;
         this.capacityNum=requestDto.getCapacityNum();
+        this.recruitmentPart=requestDto.getRecruitmentPart();
         this.area=a;
+       // this.techstacks=t;
     }
 
 }
