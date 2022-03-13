@@ -380,7 +380,7 @@ public class BoardController {
             //access 토큰 문제 없으므로 로직 진행
             boardService.deletePrePost(postIdx,requestDto);
 
-            return responseService.getSingleResult("임시 저장 게시물이 삭재됐습니다.");
+            return responseService.getSingleResult("임시 저장 게시물이 삭제됐습니다.");
 
         }else //유저가 아니므로 사용 불가, 오류 처리
             throw new OnlyUserCanUseException();
