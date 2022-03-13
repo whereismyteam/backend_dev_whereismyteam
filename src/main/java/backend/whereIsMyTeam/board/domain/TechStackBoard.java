@@ -39,4 +39,10 @@ public class TechStackBoard extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stack_idx")
     private TechStack techStack;
+
+    public TechStackBoard(TechStack t,Board board) {
+        this.board=board;
+        this.techStack=t;
+        this.status="Y";
+    }
 }

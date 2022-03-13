@@ -5,6 +5,7 @@ import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
+import backend.whereIsMyTeam.exception.User.UserNotFoundException;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
@@ -14,13 +15,12 @@ import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +33,10 @@ public class BoardService {
     private final UserRepository userRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostLikeService postLikeService;
+    private final CategoryRepository categoryRepository;
+    private final AreaRepository areaRepository;
+    private final TechStackRepository techStackRepository;
+    private final TechStackBoardRepository techStackBoardRepository;
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -94,6 +98,73 @@ public class BoardService {
     }
 
     /**
+     * 댓글 총 갯수 구하기
+     */
+    @Transactional
+    public GetCommentNumResDto getCommentNum(Long boardIdx) {
+        Board board=boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new);
+        long commentNum=commentRepository.findCommentNum(board);
+
+        return GetCommentNumResDto.builder()
+                .commentNum(commentNum)
+                .build();
+
+    }
+
+    /**
+     * 게시물 전체 조회
+     * @return MainBoardListResDto
+     * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
+     */
+    @Transactional
+    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx) {
+        //System.out.print("ㅇㅇㅇ"+ categoryIdx);
+        //Board 타입의 해당 카테고리의 글들을 가져옴
+        List<Board> boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
+
+
+        //MainDto 타입의 반환 'List'로 생성
+        List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
+
+        for (Board board : boardList){
+
+            MainBoardListResponseDto newResponseDto;
+            //각 게시글마다 댓글 갯수,찜 갯수 받아서 넣어줌.
+            long commentNum = commentRepository.findCommentNum(board);
+            long heart=postLikeRepository.findPostLikeNum(board.getBoardIdx());
+
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+            
+            //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
+            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3)
+                continue;
+
+
+
+            //조회 로직 회원,비회원 구분 해야함
+            if(userIdx!=0) { //회원
+                String isHeart=postLikeService.checkPushedLikeString(userIdx,board.getBoardIdx());
+                newResponseDto = new MainBoardListResponseDto(boardRepository.findByBoardIdx(board.getBoardIdx()).orElseThrow(BoardNotExistException::new),
+                         stacks,commentNum,heart,isHeart);
+                //MainDto로 바꾼 게시글 하나하나씩 List<> 안에 넣어줌
+                responseDtoList.add(newResponseDto);
+            }
+            else{ //비회원
+                newResponseDto = new MainBoardListResponseDto(boardRepository.findByBoardIdx(board.getBoardIdx()).orElseThrow(BoardNotExistException::new)
+                        ,stacks,heart,commentNum);
+                responseDtoList.add(newResponseDto);
+            }
+
+        }
+        return responseDtoList;
+        
+    }
+
+    /**
      * 게시물 단건 조회
      * @return GetBoardResponseDto
      */
@@ -107,6 +178,7 @@ public class BoardService {
             boardRepository.save(board);
 
             List<TechStackBoard> techStackBoards=board.getTechstacks();
+            //
             List<String> stacks=new ArrayList<>(techStackBoards.size());
             for(int i=0;i<techStackBoards.size();++i){
                 stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
@@ -114,13 +186,16 @@ public class BoardService {
 
             long heart=postLikeRepository.findPostLikeNum(boardIdx);
             List<postCommentDto> commentList=postCommentDto.toDtoList(commentRepository.findAllWithUserAndParentByBoardIdxOrderByParentIdxAscNullsFirstCommentIdxAsc(boardIdx));
+
             //조회 로직 회원,비회원 구분 해야함
             if(userIdx!=0) { //회원
                 String isHeart=postLikeService.checkPushedLikeString(userIdx,boardIdx);
-                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks,heart,isHeart,commentList);
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new)
+                        ,stacks,heart,isHeart,commentList);
             }
             else{ //비회원
-                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks,heart,commentList);
+                return new GetBoardResponseDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),
+                        stacks,heart,commentList);
             }
 
         }
@@ -155,7 +230,138 @@ public class BoardService {
         }
     }
 
+    /**
+     * 게시물 수정 진행
+     */
 
+    @Transactional
+    public void updateBoard(Long boardIdx,PatchUpdatePostRequestDto requestDto) {
+        //게시물 인덱스 검증
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+
+        if(optional.isPresent()) { //게시물 존재
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(requestDto.getUserIdx())){
+                throw new NotWriterException();
+            }
+            //게시물 수정
+            Category c=categoryRepository.findByCategoryName(requestDto.getCategory()).orElseThrow(WrongInputException::new);
+            Area a=areaRepository.findByName(requestDto.getArea()).orElseThrow(WrongInputException::new);
+
+            //기존 스택리스트 삭제
+            for(int i=0;i<board.getTechstacks().size();++i){
+              TechStackBoard deleted=  board.getTechstacks().get(i);
+              techStackBoardRepository.delete(deleted);
+
+            }
+
+
+            List<TechStackBoard> techstacks=new ArrayList<>(requestDto.getTechstacks().size());
+            //새로운 스택리스트 주입
+            for(int i=0;i<requestDto.getTechstacks().size();++i){
+                TechStack ts=techStackRepository.findByStackName(requestDto.getTechstacks().get(i));
+                TechStackBoard t = new TechStackBoard(ts,board);
+                techstacks.add(t);
+                techStackBoardRepository.save(techstacks.get(i));
+            }
+
+            board.updateBoard(requestDto,c,a);
+            boardRepository.save(board);
+        }
+
+        else{ //게시물 존재 x 오류 처리
+            throw new NullPointerException();
+        }
+    }
+
+    /**
+     * 임시 저장 게시물 단건 조회
+     * @return GetPrePostResDto
+     */
+    @Transactional
+    public GetPrePostResDto PreBoardDetail(Long userIdx,Long boardIdx) {
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+        if(optional.isPresent()) {
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(userIdx)){
+                throw new NotWriterException();
+            }
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+            return new GetPrePostResDto(boardRepository.findByBoardIdx(boardIdx).orElseThrow(BoardNotExistException::new),stacks);
+
+        }
+        else {
+            throw new NullPointerException();
+        }
+    }
+
+
+    /**
+     * 임시 저장 삭제 진행
+     */
+
+    @Transactional
+    public void deletePrePost(Long boardIdx,PatchPrePostReqDto requestDto) {
+        //게시물 인덱스 검증
+        Optional<Board> optional = boardRepository.findByBoardIdx(boardIdx);
+
+        if(optional.isPresent()) { //게시물 존재
+            Board board = optional.get();
+            //유저랑 게시물 작성자 같은 지 검증
+            if(!board.getWriter().getUserIdx().equals(requestDto.getUserIdx())){
+                throw new NotWriterException();
+            }
+
+            board.setBoardStatuses("삭제");
+            boardRepository.save(board);
+        }
+
+        else{ //게시물 존재 x
+            throw new NullPointerException();
+        }
+    }
+
+    /**
+     * 임시저장 게시물 목록 전체 조회
+     * @return GetPrePostListResDto
+     * [조건] : 게시물 상태는 "임시저장"
+     */
+    @Transactional
+    public GetPrePostListResDto findPreBoards(User user ) {
+
+        long num=0;
+
+        //해당 유저 임시 저장 게시물들 가져오기
+        List<Board> boardList = boardRepository.findByWriter(user);
+
+
+        //MainDto 타입의 반환 'List'로 생성
+        List<prePostInfoDto> responseDtoList = new ArrayList<>();
+
+        for (Board board : boardList){
+
+            //임시 저장 아니면 진행 X
+            if(!(board.getBoardStatuses().get(0).getCode()==0 ))
+                continue;
+
+            prePostInfoDto newResponseDto;
+
+            newResponseDto = new prePostInfoDto(board.getTitle(),board.getCreateAt());
+
+            responseDtoList.add(newResponseDto);
+            num++;
+        }
+        //게시물 전체수 조회
+
+        return new GetPrePostListResDto(num,responseDtoList);
+
+    }
 
 
 //    /**

@@ -304,4 +304,13 @@ public class UserService {
 
     }
 
+    /**
+     * 유저 정보 조회
+     **/
+    @Transactional
+    public GetUserInfoResDto userInfo(User user) {
+
+        return new GetUserInfoResDto(user.getUserIdx(),user.getEmail(),user.getNickName(),user.getProfileImgIdx());
+    }
+
 }

@@ -78,7 +78,7 @@ public class UserController {
         String refreshToken=jwtTokenProvider.resolveRefreshToken(header);
         if(refreshToken==null)
             throw new RefreshNotExistException();
-        System.out.println("10\n");
+
         //리프레시 토큰 유효 한지 검증
         User user=userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
         String findRefreshToken = redisService.getData(RedisKey.REFRESH.getKey()+user.getEmail());
@@ -86,12 +86,11 @@ public class UserController {
             throw new GoToLoginException();
         if(!findRefreshToken.equals(refreshToken))
             throw new InvalidRefreshTokenException();
-        System.out.println("11\n");
+
         //리프레시 토큰 expiration 유효한지 검증, 유효 o->service단에서 access 토큰 재발급, 유효 x->오류처리(로그인 해주세요)
         if(jwtTokenProvider.validateTokenExpiration(refreshToken))
             throw new GoToLoginException();
 
-        System.out.println("12\n");
         //access 토큰 재발행
         ReIssueResponseDto responseDto = userService.reIssue(requestDto);
 
@@ -137,6 +136,7 @@ public class UserController {
         return responseService.getSingleResult("인증이 완료됐습니다.");
     }
 
+
     /**
      * 이메일 중복 체크 API
      * [GET] /users/emails?email=
@@ -180,6 +180,26 @@ public class UserController {
             userService.logout(header,requestDto);
 
             return responseService.getSingleResult("로그아웃 됐습니다.");
+        }
+        else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
+    }
+
+    /**
+     * 유저 정보 조회 API
+     **/
+    @GetMapping("/{userIdx}/info")
+    public SingleResult<GetUserInfoResDto> userInfo (HttpServletRequest header, @PathVariable long userIdx){
+
+        if(userIdx!=0) {
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+            //검증 끝났으므로 로직 진행
+            GetUserInfoResDto responseDto = userService.userInfo(user);
+
+            return responseService.getSingleResult(responseDto);
         }
         else //유저가 아니므로 사용 불가, 오류 처리
             throw new OnlyUserCanUseException();
