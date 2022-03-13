@@ -8,6 +8,7 @@ import backend.whereIsMyTeam.exception.User.UserNotExistException;
 import backend.whereIsMyTeam.exception.User.UserNotFoundException;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.user.UserRepository;
+import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
@@ -275,7 +276,7 @@ public class BoardService {
     }
 
     /**
-     * 임시 저장 게시물 조회
+     * 임시 저장 게시물 단건 조회
      * @return GetPrePostResDto
      */
     @Transactional
@@ -326,7 +327,41 @@ public class BoardService {
         }
     }
 
+    /**
+     * 임시저장 게시물 목록 전체 조회
+     * @return GetPrePostListResDto
+     * [조건] : 게시물 상태는 "임시저장"
+     */
+    @Transactional
+    public GetPrePostListResDto findPreBoards(User user ) {
 
+        long num=0;
+
+        //해당 유저 임시 저장 게시물들 가져오기
+        List<Board> boardList = boardRepository.findByWriter(user);
+
+
+        //MainDto 타입의 반환 'List'로 생성
+        List<prePostInfoDto> responseDtoList = new ArrayList<>();
+
+        for (Board board : boardList){
+
+            //임시 저장 아니면 진행 X
+            if(!(board.getBoardStatuses().get(0).getCode()==0 ))
+                continue;
+
+            prePostInfoDto newResponseDto;
+
+            newResponseDto = new prePostInfoDto(board.getTitle(),board.getCreateAt());
+
+            responseDtoList.add(newResponseDto);
+            num++;
+        }
+        //게시물 전체수 조회
+
+        return new GetPrePostListResDto(num,responseDtoList);
+
+    }
 
 
 //    /**

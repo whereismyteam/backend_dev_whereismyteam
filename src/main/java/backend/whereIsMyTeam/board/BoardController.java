@@ -137,7 +137,7 @@ public class BoardController {
      * @return SingleResult<String>
      *     /{categoryIdx}
      **/
-    @GetMapping("/homes")
+    @GetMapping("/homes/{categoryIdx}")
     public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
                                                                      @RequestParam(value = "categoryIdx") Long categoryIdx,
                                                                 @Valid @RequestBody BoardListRequestDto reqDto) {
@@ -169,7 +169,7 @@ public class BoardController {
     /**
      * 단건 게시물 조회 API
      * [PUT] /users/posts/:postIdx
-     * @return SingleResult<String>
+     * @return SingleResult<GetBoardResponseDto>
      */
     @PatchMapping("posts/{postIdx}")
     public SingleResult<GetBoardResponseDto> getBoardDetail ( HttpServletRequest header,@PathVariable("postIdx") Long postIdx,@Valid @RequestBody PatchViewBoardRequestDto patchViewBoardRequestDto) {
@@ -384,6 +384,30 @@ public class BoardController {
 
         }else //유저가 아니므로 사용 불가, 오류 처리
             throw new OnlyUserCanUseException();
+    }
+
+    /**
+     * 임시저장 게시글 목록 조회 API
+     * [GET] users/:userIdx/prePosts
+     * @return SingleResult<List<GetPrePostListResDto>>
+     **/
+    @GetMapping("/{userIdx}/prePosts")
+    public SingleResult<GetPrePostListResDto> getPreBoardList (HttpServletRequest header, @PathVariable(value = "userIdx") Long userIdx)
+    {
+
+        if(userIdx!=0){ //회원이라면
+            //access token 검증
+            User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+            GetPrePostListResDto listDto = boardService.findPreBoards(user);
+            return responseService.getSingleResult(listDto);
+        }
+        else //회원 아니므로 사용 불가, 오류 처리
+        {
+            throw new OnlyUserCanUseException();
+        }
+
+
     }
 
 
