@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -135,19 +136,19 @@ public class BoardController {
      * @return SingleResult<String>
      *     /{categoryIdx}
      **/
-    @GetMapping("/homes")
+    @GetMapping("/homes/{userIdx}")
     public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
-                                                                     @RequestParam(value = "categoryIdx") Long categoryIdx,
-                                                                @Valid @RequestBody BoardListRequestDto reqDto) {
+                                                                     @RequestParam(value = "idx") Long categoryIdx,
+                                                                     @PathVariable("userIdx") Long userIdx) {
 
-        long userIdx = reqDto.getUserIdx();
+
         if(userIdx!=0){ //회원이라면
             //access token 검증
             User user=userRepository.findByUserIdx(userIdx).orElseThrow(UserNotExistException::new);
             jwtTokenProvider.validateAccess(header, user.getEmail());
         }
 
-        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(reqDto.getUserIdx(),categoryIdx);
+        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(userIdx,categoryIdx);
 
         return responseService.getSingleResult(listDto);
 
