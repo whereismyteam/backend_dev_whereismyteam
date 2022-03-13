@@ -140,7 +140,7 @@ public class BoardController {
      **/
     @GetMapping("/homes/{userIdx}")
     public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
-                                                                     @RequestParam(value = "idx") Long categoryIdx,
+                                                                     @RequestParam(value = "categoryIdx") Long categoryIdx,
                                                                      @PathVariable("userIdx") Long userIdx) {
 
 

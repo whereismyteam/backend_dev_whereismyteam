@@ -23,8 +23,14 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
     Optional<Board> findWithWriterByBoardIdx(Long userIdx);
 
     //https://ykh6242.tistory.com/105 참고
-    //네이티브 SQL로 조회
-   // @Query(value = "select b.* from Board b where b.category_idx = :idx",nativeQuery = true)
+    //네이티브 SQL x
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            //"and b.boardStatuses = BoardStatus.RECRUITED  " +
+            "order by b.createAt desc "
+            //"and "
+    )
     List<Board> findAllByCategoryIdx(@Param("category_idx") Long idx);
 
     /**
@@ -32,19 +38,20 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
      * 참고) https://wikidocs.net/155529
     **/
     //모집중만 띄워주는 쿼리
-    @Query(value = "SELECT b " +
-            "FROM Board as b " +
-            "LEFT JOIN user as u " +
-            "ON b.user_idx = u.userIdx " +
-            "LEFT JOIN category as c " +
-            "ON b.category_idx = c.idx " +
-            "WHERE (b.category_idx = :category_idx) " +
-//            "where b.category.idx=:category_idx and b.user.userIdx=:user_idx " +
-//            "and b.boardStatuses = BoardStatus.RECRUITED " +
-            "ORDER BY b.createAt DESC ",
-            nativeQuery = true)
-    List<Board> findAllByCategoryIdxWithBoardStatus(@Param("category_idx") Long idx
-            , @PathVariable("user_idx")Long userIdx);
+//    @Query(value = "SELECT b " +
+//            "FROM boards as b " +
+//            "LEFT JOIN users as u " +
+//            "ON b.user_idx = u.userIdx " +
+//            "LEFT JOIN categoryss as c " +
+//            "ON b.category_idx = c.idx " +
+//            "WHERE (b.category_idx = :category_idx)  " +
+//            "AND (b.user_idx = :user_idx) " +
+////            "where b.category.idx=:category_idx and b.user.userIdx=:user_idx " +
+////            "and b.boardStatuses = BoardStatus.RECRUITED " +
+//            "ORDER BY b.createAt DESC ",
+//            nativeQuery = true)
+//    List<Board> findAllByCategoryIdxWithBoardStatus(@Param("category_idx") Long idx
+//            , @Param("user_idx")Long userIdx);
 
     //모집중만 띄워주는 쿼리
     //List<Board> findAllByCategoryIdxWithoutBoardStatus(@Param("category_idx") Long idx);

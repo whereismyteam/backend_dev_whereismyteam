@@ -119,8 +119,8 @@ public class BoardService {
     @Transactional
     public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
-
+        //List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
+        List<Board> boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
