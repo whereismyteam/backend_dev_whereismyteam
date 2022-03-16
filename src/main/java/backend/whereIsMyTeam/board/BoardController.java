@@ -448,27 +448,27 @@ public class BoardController {
      * [PATCH] /users/posts/:postIdx/remove
      * @return SingleResult<String>
      */
-    @PatchMapping("/posts/{postIdx}/remove")
-    public SingleResult<String> deletePost (HttpServletRequest header,
-                                               @PathVariable(value = "postIdx") Long postIdx,
-                                               @Valid @RequestBody PatchPostReqDto requestDto) {
-
-        if(requestDto.getUserIdx()!=0) { //회원이라면
-            //회원 유저인덱스 일치 검증
-            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
-            //이메일 인증 검증
-            if (!user.getEmailAuth())
-                throw new GoToEmailAuthException();
-            //access token 검증
-            jwtTokenProvider.validateAccess(header, user.getEmail());
-
-            //access 토큰 문제 없으므로 로직 진행
-            boardService.deletePost(postIdx,requestDto);
-
-            return responseService.getSingleResult("게시물이 삭제됐습니다.");
-
-        }else //유저가 아니므로 사용 불가, 오류 처리
-            throw new OnlyUserCanUseException();
-    }
+//    @PatchMapping("/posts/{postIdx}/remove")
+//    public SingleResult<String> deletePost (HttpServletRequest header,
+//                                               @PathVariable(value = "postIdx") Long postIdx,
+//                                               @Valid @RequestBody PatchPostReqDto requestDto) {
+//
+//        if(requestDto.getUserIdx()!=0) { //회원이라면
+//            //회원 유저인덱스 일치 검증
+//            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+//            //이메일 인증 검증
+//            if (!user.getEmailAuth())
+//                throw new GoToEmailAuthException();
+//            //access token 검증
+//            jwtTokenProvider.validateAccess(header, user.getEmail());
+//
+//            //access 토큰 문제 없으므로 로직 진행
+//            boardService.deletePost(postIdx,requestDto);
+//
+//            return responseService.getSingleResult("게시물이 삭제됐습니다.");
+//
+//        }else //유저가 아니므로 사용 불가, 오류 처리
+//            throw new OnlyUserCanUseException();
+//    }
 
 }

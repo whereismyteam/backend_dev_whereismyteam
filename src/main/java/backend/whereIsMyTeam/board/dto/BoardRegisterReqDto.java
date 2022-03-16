@@ -40,7 +40,7 @@ public class BoardRegisterReqDto {
     private String title;
     @NotNull(message = "글 내용을 입력해주세요.")
     private String content;
-    @NotNull(message = " 작성자")
+    @NotNull(message = "작성자를 입력해주세요.")
     private Long userIdx;
 
     @NotNull(message = "모집 파트를 입력해주세요.")
