@@ -118,17 +118,20 @@ public class BoardService {
      */
     @Transactional
     public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx) {
-        //System.out.print("ㅇㅇㅇ"+ categoryIdx);
         //Board 타입의 해당 카테고리의 글들을 가져옴
+        //List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
         List<Board> boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
-
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
         for (Board board : boardList){
+            //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
+            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3)
+                continue;
 
             MainBoardListResponseDto newResponseDto;
+
             //각 게시글마다 댓글 갯수,찜 갯수 받아서 넣어줌.
             long commentNum = commentRepository.findCommentNum(board);
             long heart=postLikeRepository.findPostLikeNum(board.getBoardIdx());
@@ -138,24 +141,18 @@ public class BoardService {
             for(int i=0;i<techStackBoards.size();++i){
                 stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
             }
-            
-            //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
-            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3)
-                continue;
 
 
 
             //조회 로직 회원,비회원 구분 해야함
             if(userIdx!=0) { //회원
                 String isHeart=postLikeService.checkPushedLikeString(userIdx,board.getBoardIdx());
-                newResponseDto = new MainBoardListResponseDto(boardRepository.findByBoardIdx(board.getBoardIdx()).orElseThrow(BoardNotExistException::new),
-                         stacks,commentNum,heart,isHeart);
+                newResponseDto = new MainBoardListResponseDto(board,stacks,commentNum,heart,isHeart);
                 //MainDto로 바꾼 게시글 하나하나씩 List<> 안에 넣어줌
                 responseDtoList.add(newResponseDto);
             }
             else{ //비회원
-                newResponseDto = new MainBoardListResponseDto(boardRepository.findByBoardIdx(board.getBoardIdx()).orElseThrow(BoardNotExistException::new)
-                        ,stacks,heart,commentNum);
+                newResponseDto = new MainBoardListResponseDto(board,stacks,heart,commentNum);
                 responseDtoList.add(newResponseDto);
             }
 
