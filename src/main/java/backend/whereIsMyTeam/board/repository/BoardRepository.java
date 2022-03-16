@@ -28,7 +28,7 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
             "from Board b " +
             "where b.category.idx = :category_idx " +
             //"and b.boardStatuses = BoardStatus.RECRUITED  " +
-            "order by b.createAt desc "
+            "order by b.createAt desc , b.cnt desc"
             //"and "
     )
     List<Board> findAllByCategoryIdx(@Param("category_idx") Long idx);

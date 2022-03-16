@@ -430,4 +430,18 @@ public class ApiExceptionHandler {
         return new ResponseEntity<>(apiException, httpStatus);
     }
 
+
+    @ExceptionHandler({NotMatchMeetingStatusException.class})
+    public  ResponseEntity<Object> handleRefreshNotExistException(NotMatchMeetingStatusException e) {
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        ApiException apiException = new ApiException(
+                ExceptionMessage.NOT_MATCH_MEETING_STATUS_EXCEPTION_MESSAGE,
+                httpStatus,
+                ZonedDateTime.now(ZoneId.of("Z"))
+        );
+
+        return new ResponseEntity<>(apiException, httpStatus);
+    }
+
 }

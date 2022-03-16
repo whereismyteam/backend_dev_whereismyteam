@@ -1,5 +1,6 @@
 package backend.whereIsMyTeam.board.domain;
 
+import backend.whereIsMyTeam.board.dto.BoardRegisterReqDto;
 import backend.whereIsMyTeam.board.dto.PatchUpdatePostRequestDto;
 import backend.whereIsMyTeam.config.BaseTimeEntity;
 import backend.whereIsMyTeam.exception.Board.WrongInputException;
@@ -116,14 +117,26 @@ public class Board extends BaseTimeEntity {
 
     //게시글 작성 Builder
     @Builder
-    public Board(String title,Area area, Long capacityNum, String content
-            , User writer, Category category, BoardStatus boardStatus) {
+    public Board(String title, Area areas,
+                 Long capacityNum, String content,
+            List<MeetingStatus> meetingStatus,
+                User writer, List<String> recruitmentPart,
+                 Category categorys,
+                 List<BoardStatus> boardStatus,
+                 List<TechStackBoard> techstackss) {
+
+        this.area = areas;
+        this.category = categorys;
         this.title=title;
-        this.category = category;
         this.capacityNum = capacityNum;
-        //this.boardStatus = status;
         this.content = content;
         this.writer = writer;
+        this.techstacks = techstackss;
+        this.recruitmentPart = recruitmentPart;
+        this.meetingStatuses = meetingStatus;
+        this.boardStatuses = boardStatus;
+
+
     }
 
     // 필드: '댓글'

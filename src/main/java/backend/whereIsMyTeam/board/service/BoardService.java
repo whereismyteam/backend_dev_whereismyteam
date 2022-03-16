@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -361,31 +362,100 @@ public class BoardService {
     }
 
 
-//    /**
-//     *
-//     * 게시글 작성
-//     **/
-//    @Transactional
-//    public BoardRegisterReqDto saveBoard(BoardRegisterReqDto reqDto){
-//
-//        //임시저장이냐 등록이냐에 따라 status 분리
-//        Board board = BoardRepository.save(
-//                Board.builder()
-//                        .category(reqDto.getCategory())
-//                        .area(reqDto.getArea())
-//                        .capacityNum(reqDto.getCapacityNum())
-//                        .title(reqDto.getTitle())
-//                        .content(reqDto.getContent())
-//                        .writer(reqDto.getUser())
-//                        .boardStatus(reqDto.getStatus())
-////                        .nickName(requestDto.getNickName())
-////                        .roles(Collections.singletonList(Role.ROLE_NOTAUTH))
-////                        .provider(null)
-//                        .build());
-//
-//        return BoardRegisterResDto.builder()
-//                .boardIdx(board.getBoardIdx())
-//                .build();
-//    }
-//}
+    /**
+     * 임시저장/기본 게시글 작성(등록)
+     * @return BoardRegisterResDto
+     * [조건] : 게시물 상태: '모집 중'
+     **/
+    @Transactional
+    public BoardRegisterResDto createdBoard(BoardRegisterReqDto reqDto, User user){
+
+        //카테고리 선정
+        Optional<Category> optional=categoryRepository.findByCategoryName(reqDto.getCategoryName());
+        Category category = optional.get();
+
+        //지역 선정
+         Area area = areaRepository.findByName(reqDto.getArea()).orElseThrow(WrongInputException::new);
+
+        //회의방식(onOff)
+        List<MeetingStatus> m =new ArrayList<>();
+        if(reqDto.getOnOff().equals("온라인")) {
+           m = Collections.singletonList(MeetingStatus.ONLINE);
+        }else if(reqDto.getOnOff().equals("오프라인")) {
+            m = Collections.singletonList(MeetingStatus.OFFLINE);
+            // this.meetingStatuses.set(0, MeetingStatus.OFFLINE);
+        }else{
+            if(reqDto.getOnOff().equals("온/오프")) {
+                m = Collections.singletonList(MeetingStatus.BLENDED);
+            }else //그 외에 결과가 들어왔을 때
+                throw new NotMatchMeetingStatusException();
+        }
+
+
+        //글 상태(BoardStatus)
+        List<BoardStatus> b =new ArrayList<>();
+        if(reqDto.getBoardStatus().equals("임시저장")) {
+            b = Collections.singletonList(BoardStatus.STORED);
+        }else if(reqDto.getBoardStatus().equals("모집중")) {
+            b = Collections.singletonList(BoardStatus.RECRUITED);
+        }else{//임시저장 or 모집중인 글만 작성해야 함
+            throw new NotBoardStatusException();
+        }
+
+
+        //임시저장이냐 등록이냐에 따라 status 분리
+        Board board = boardRepository.save(
+                Board.builder()
+                        .categorys(category)
+                        .areas(area)
+                        .capacityNum(reqDto.getCapacityNum())
+                        .title(reqDto.getTitle())
+                        .content(reqDto.getContent())
+                        .writer(user)
+                        .recruitmentPart(reqDto.getRecruitmentPart())
+                        .meetingStatus(m) //collections로 처리
+                        .boardStatus(b)
+                        //.techstackss(techstacks) //필요없음
+                        .build());
+
+        List<TechStackBoard> techstacks=new ArrayList<>(reqDto.getTechstacks().size());
+        //새로운 스택리스트 주입
+        for(int i=0; i<reqDto.getTechstacks().size();++i){
+            TechStack ts=techStackRepository.findByStackName(reqDto.getTechstacks().get(i));
+            TechStackBoard t = new TechStackBoard(ts,board);
+            techstacks.add(t);
+            techStackBoardRepository.save(techstacks.get(i));
+        }
+
+        return BoardRegisterResDto.builder()
+                .boardIdx(board.getBoardIdx())
+                .build();
+    }
+
+
+    /**
+     * 게시글 삭제
+     * [조건] : 게시물 상태: '모집 중'
+     * 1. 게시글 기술스택 제대로 체크했는지 확인 필요하지 않을까?
+     **/
+    @Transactional
+    public void deletePost(Long postIdx, PatchPostReqDto reqDto){
+
+        Optional<Board> optional = boardRepository.findByBoardIdx(postIdx);
+
+        if(optional.isPresent()) { //게시물 여부 확인
+            Board board = optional.get();
+            //작성자와 삭제 요청자가 같은지 확인
+            if (reqDto.getUserIdx() != board.getWriter().getUserIdx()) {
+                throw new NotWriterException();
+            }
+
+            //게시글 삭제
+            boardRepository.delete(board);
+
+        }else{ //게시물 존재 x
+            throw new NullPointerException();
+        }
+    }
+
 }
