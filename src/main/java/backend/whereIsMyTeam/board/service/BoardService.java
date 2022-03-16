@@ -365,7 +365,7 @@ public class BoardService {
     /**
      * 임시저장/기본 게시글 작성(등록)
      * @return BoardRegisterResDto
-     * [조건] : 게시물 상태: '모집 중'
+     * [조건] : 게시물 상태: '모집 중',"임시저장"
      **/
     @Transactional
     public BoardRegisterResDto createdBoard(BoardRegisterReqDto reqDto, User user){
@@ -438,24 +438,24 @@ public class BoardService {
      * [조건] : 게시물 상태: '모집 중'
      * 1. 게시글 기술스택 제대로 체크했는지 확인 필요하지 않을까?
      **/
-    @Transactional
-    public void deletePost(Long postIdx, PatchPostReqDto reqDto){
-
-        Optional<Board> optional = boardRepository.findByBoardIdx(postIdx);
-
-        if(optional.isPresent()) { //게시물 여부 확인
-            Board board = optional.get();
-            //작성자와 삭제 요청자가 같은지 확인
-            if (reqDto.getUserIdx() != board.getWriter().getUserIdx()) {
-                throw new NotWriterException();
-            }
-
-            //게시글 삭제
-            boardRepository.delete(board);
-
-        }else{ //게시물 존재 x
-            throw new NullPointerException();
-        }
-    }
+//    @Transactional
+//    public void deletePost(Long postIdx, PatchPostReqDto reqDto){
+//
+//        Optional<Board> optional = boardRepository.findByBoardIdx(postIdx);
+//
+//        if(optional.isPresent()) { //게시물 여부 확인
+//            Board board = optional.get();
+//            //작성자와 삭제 요청자가 같은지 확인
+//            if (reqDto.getUserIdx() != board.getWriter().getUserIdx()) {
+//                throw new NotWriterException();
+//            }
+//
+//            //게시글 삭제
+//            boardRepository.delete(board);
+//
+//        }else{ //게시물 존재 x
+//            throw new NullPointerException();
+//        }
+//    }
 
 }
