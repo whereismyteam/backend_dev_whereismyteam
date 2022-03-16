@@ -139,10 +139,8 @@ public class BoardController {
      *     /{categoryIdx}
      **/
     @GetMapping("/homes/{userIdx}")
-    public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
-                                                                     @RequestParam(value = "categoryIdx") Long categoryIdx,
+    public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header, @RequestParam(value = "categoryIdx") Long categoryIdx,
                                                                      @PathVariable("userIdx") Long userIdx) {
-
 
         if(userIdx!=0){ //회원이라면
             //access token 검증
@@ -411,5 +409,66 @@ public class BoardController {
 
     }
 
+
+
+    /**
+     * 게시글/임시저장 게시글 등록 API
+     *  [POST] /users/posts
+     *  @return SingleResult<BoardRegisterResDto>
+     **/
+    @PostMapping("/posts")
+    public SingleResult<String> registerBoard (HttpServletRequest header,
+                                                            @Valid @RequestBody BoardRegisterReqDto reqDto){
+        if(reqDto.getUserIdx()!=0) { //회원이라면
+
+                //회원 유저인덱스 일치 검증
+                User user = userRepository.findByUserIdx(reqDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+                //이메일 인증 검증
+                if (!user.getEmailAuth())
+                    throw new GoToEmailAuthException();
+                //access token 검증(본인확인)
+                jwtTokenProvider.validateAccess(header, user.getEmail());
+
+                //access 토큰 문제 없으므로 -> 좋아요 취소
+                boardService.createdBoard(reqDto, user);
+                if (reqDto.getBoardStatus().equals("모집중"))
+                    return responseService.getSingleResult("게시글이 생성되었습니다.");
+                else
+                     return responseService.getSingleResult("임시저장 되었습니다.");
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
+
+    }
+
+
+
+    /**
+     * 게시글 삭제 API (임시저장 글 삭제 x)
+     * [PATCH] /users/posts/:postIdx/remove
+     * @return SingleResult<String>
+     */
+    @PatchMapping("/posts/{postIdx}/remove")
+    public SingleResult<String> deletePost (HttpServletRequest header,
+                                               @PathVariable(value = "postIdx") Long postIdx,
+                                               @Valid @RequestBody PatchPostReqDto requestDto) {
+
+        if(requestDto.getUserIdx()!=0) { //회원이라면
+            //회원 유저인덱스 일치 검증
+            User user = userRepository.findByUserIdx(requestDto.getUserIdx()).orElseThrow(UserNotExistException::new);
+            //이메일 인증 검증
+            if (!user.getEmailAuth())
+                throw new GoToEmailAuthException();
+            //access token 검증
+            jwtTokenProvider.validateAccess(header, user.getEmail());
+
+            //access 토큰 문제 없으므로 로직 진행
+            boardService.deletePost(postIdx,requestDto);
+
+            return responseService.getSingleResult("게시물이 삭제됐습니다.");
+
+        }else //유저가 아니므로 사용 불가, 오류 처리
+            throw new OnlyUserCanUseException();
+    }
 
 }

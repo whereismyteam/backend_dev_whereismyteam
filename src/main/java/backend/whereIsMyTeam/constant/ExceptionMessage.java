@@ -59,5 +59,5 @@ public class ExceptionMessage {
     public static String WRONG_INPUT_MESSAGE="잘못된 요청 양식입니다.";
     public static String ONLY_WRITER_CAN_MESSAGE="글 작성자 외엔 권한이 없습니다.";
     public static final String NOT_BOARD_STATUS_EXCEPTION_MESSAGE = "BOARD STATUS 에러입니다";
-
+    public static String NOT_MATCH_MEETING_STATUS_EXCEPTION_MESSAGE = "MEETING STATUS를 제대로 기입해주세요.";
 }
