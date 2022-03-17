@@ -118,18 +118,31 @@ public class BoardService {
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
     @Transactional
-    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx) {
+    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, Boolean created, Boolean liked,Boolean meeting) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
         //List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
-        List<Board> boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
+
+        List<Board> boardList ;
+        if (liked) {
+            boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx);
+        }else if(created){
+            boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx);
+        }else{ //카테고리 Idx로만 내보냄
+            boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
+        }
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
         for (Board board : boardList){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
-            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3)
+            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
                 continue;
+            }
+            if(meeting && board.getBoardStatuses().get(0).getCode()==2){
+                //'모집중'만 선택시 , list에서 모집완료는 배제
+                continue;
+            }
 
             MainBoardListResponseDto newResponseDto;
 
