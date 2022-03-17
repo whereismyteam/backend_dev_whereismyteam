@@ -10,6 +10,10 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Getter
 @NoArgsConstructor
@@ -22,26 +26,33 @@ public class BoardRegisterReqDto {
      * 절대로 요청(Request)이나 응답(Response)에 사용되어서는 안 되기 때문에
      **/
 
-    private Category category;
+    @NotNull(message = "카테고리를 선택해주세요.")
+    private String categoryName;
+    @NotNull(message = "회의 방식을 입력해주세요.")
+    private String onOff;
 
-    private Area area;
-
+    @NotNull(message = "지역을 선택해주세요.")
+    private String area;
+    @NotNull(message = "모집인원을 선택해주세요. ")
     private Long capacityNum;
 
-    //모집파트
-
-
-    //회의방식
-    private BoardStatus status;
-    //기술스택
-
-    //제목
+    @NotNull(message = "제목을 입력해주세요.")
     private String title;
-    //내용
+    @NotNull(message = "글 내용을 입력해주세요.")
     private String content;
+    @NotNull(message = "작성자를 입력해주세요.")
+    private Long userIdx;
 
-    //작성자
-    private User user;
+    @NotNull(message = "모집 파트를 입력해주세요.")
+    private final List<String> recruitmentPart = new ArrayList<>();
+    @NotNull(message = "스택 리스트를 입력해주세요.")
+    private final List<String> techstacks = new ArrayList<>();
+    @NotNull(message = "게시글 상태를 입력해주세요.")
+    private String boardStatus;
+
+
+
+
 
 
 }
