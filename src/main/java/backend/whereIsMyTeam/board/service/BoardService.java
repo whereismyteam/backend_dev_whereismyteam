@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,23 +121,34 @@ public class BoardService {
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
     @Transactional
-    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, Boolean created, Boolean liked,Boolean meeting) {
+    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
+                                                        int size, Long lastArticleIdx) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
+        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
+        Pageable pageable = PageRequest.of(0,size);
 
-        List<Board> boardList ;
+        Page<Board> boardList ;
+
         if (liked) {
-            boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx);
-        }else if(created){
-            boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx);
-        }else{ //카테고리 Idx로만 내보냄
-            boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
+            if(lastArticleIdx==0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
+                boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx,pageable);
+            } else{
+                boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdx(categoryIdx, lastArticleIdx, pageable);
+            }
+
+        }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
+            if(lastArticleIdx==0) {
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx,pageable);
+            }else{
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdx(categoryIdx,lastArticleIdx,pageable);
+            }
+
         }
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
-        for (Board board : boardList){
+        for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
             if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
                 continue;
@@ -171,6 +185,7 @@ public class BoardService {
             }
 
         }
+        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
         return responseDtoList;
         
     }

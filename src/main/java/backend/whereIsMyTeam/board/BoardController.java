@@ -7,6 +7,7 @@ import backend.whereIsMyTeam.board.service.BoardService;
 import backend.whereIsMyTeam.board.service.PostLikeService;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.*;
+import backend.whereIsMyTeam.result.CursorResult;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
 import backend.whereIsMyTeam.user.UserRepository;
@@ -143,9 +144,11 @@ public class BoardController {
     public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
                                                                      @PathVariable("userIdx") Long userIdx,
                                                                      @RequestParam(value = "categoryIdx") Long categoryIdx,
-                                                                     @RequestParam(value = "createAt") Boolean created,
-                                                                     @RequestParam(value = "liked") Boolean liked,
-                                                                     @RequestParam(value = "meeting") Boolean meeting) {
+//                                                                     @RequestParam(value = "createAt") Boolean created,
+                                                                     @RequestParam Boolean liked,
+                                                                     @RequestParam Boolean meeting,
+                                                                     @RequestParam int size,
+                                                                     @RequestParam(value = "lastArticleIdx") Long lastArticleIdx) {
 
         if(userIdx!=0){ //회원이라면
             //access token 검증
@@ -153,7 +156,8 @@ public class BoardController {
             jwtTokenProvider.validateAccess(header, user.getEmail());
         }
 
-        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(userIdx,categoryIdx,created,liked,meeting);
+        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(userIdx,categoryIdx,
+                /*created,*/liked,meeting,size,lastArticleIdx);
 
         return responseService.getSingleResult(listDto);
 
