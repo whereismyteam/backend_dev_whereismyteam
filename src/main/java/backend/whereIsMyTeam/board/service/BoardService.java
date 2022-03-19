@@ -124,20 +124,25 @@ public class BoardService {
     public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
                                                         int size, Long lastArticleIdx) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
+        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
 
         Page<Board> boardList ;
 
         if (liked) {
-            if(lastArticleIdx!=0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
-                boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdx(categoryIdx, lastArticleIdx, pageable);
-            }else{
+            if(lastArticleIdx==0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
                 boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx,pageable);
+            } else{
+                boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdx(categoryIdx, lastArticleIdx, pageable);
             }
-        }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
 
-            boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx,lastArticleIdx,pageable);
+        }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
+            if(lastArticleIdx==0) {
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx,pageable);
+            }else{
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdx(categoryIdx,lastArticleIdx,pageable);
+            }
+
         }
 
         //MainDto 타입의 반환 'List'로 생성
@@ -180,6 +185,7 @@ public class BoardService {
             }
 
         }
+        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
         return responseDtoList;
         
     }

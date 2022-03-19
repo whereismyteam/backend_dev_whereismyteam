@@ -25,7 +25,11 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
     Optional<Board> findWithWriterByBoardIdx(Long userIdx);
 
 
-    //좋아요순(조회수) 쿼리
+
+    /**
+     * 좋아요순(조회수)
+     * [조건] : lastArticleIdx 필요없음
+     **/
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
@@ -35,7 +39,11 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
                                              @Param("lastIdx") Long lastArticleIdx,
                                              Pageable pageable);
 
-    //좋아요순(조회수) 쿼리
+
+    /**
+     * 좋아요순(조회수) + 최초 조회
+     * [조건] : lastArticleIdx 필요없음
+     **/
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
@@ -43,18 +51,34 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
     Page<Board> findAllByCategoryIdxAndLiked(@Param("category_idx") Long idx,
                                              Pageable pageable);
 
-    //기본 최신순 조회(boardIdx 및 createdAt DESC)
+
+    /**
+     * 최신순
+     * [조건] : lastArticleIdx 필요
+     **/
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
             "and b.boardIdx < :lastIdx " +
             "order by b.createAt desc, b.boardIdx desc")
-    Page<Board> findAllByCategoryIdxAndCreateAt(@Param("category_idx") Long idx,
+    Page<Board> findAllByCategoryIdxAndCreateAtWithLastIdx(@Param("category_idx") Long idx,
                                                 @Param("lastIdx") Long lastArticleIdx,
+                                                Pageable pageable);
+    /**
+     * 최신순 + (최초 조회)
+     * [조건] : lastArticleIdx 필요없음
+    **/
+
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "order by b.createAt desc, b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndCreateAt(@Param("category_idx") Long idx,
                                                 Pageable pageable);
 
 
-    //좋아요순,최신순 x 경우
+    //좋아요순,최신순 x
+    //[조건] : lastArticleIdx 필요없음
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx "

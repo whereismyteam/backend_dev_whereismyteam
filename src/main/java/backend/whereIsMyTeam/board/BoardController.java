@@ -7,6 +7,7 @@ import backend.whereIsMyTeam.board.service.BoardService;
 import backend.whereIsMyTeam.board.service.PostLikeService;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.*;
+import backend.whereIsMyTeam.result.CursorResult;
 import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.security.jwt.JwtTokenProvider;
 import backend.whereIsMyTeam.user.UserRepository;
