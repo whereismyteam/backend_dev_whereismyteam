@@ -26,6 +26,7 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
 
 
 
+
     /**
      * 좋아요순(조회수)
      * [조건] : lastArticleIdx 필요없음
@@ -90,6 +91,64 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
      * 참고) https://wikidocs.net/155529
     **/
 
+
+    /**
+     * 좋아요순(조회수)
+     * [조건] : lastArticleIdx 필요없음
+     **/
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "and b.boardIdx in (:stacked) " +
+            "and b.boardIdx < :lastIdx " +
+            "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndLikedWithLastIdxAndStacks(@Param("category_idx") Long idx,
+                                                        @Param("lastIdx") Long lastArticleIdx,
+                                                        @Param("stacked") List<Long> boardIdxst,
+                                                        Pageable pageable);
+
+
+    /**
+     * 좋아요순(조회수) + 최초 조회
+     * [조건] : lastArticleIdx 필요없음
+     **/
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "and b.boardIdx in (:stacked) " +
+            "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndLikedAndStacks(@Param("category_idx") Long idx,
+                                             @Param("stacked") List<Long> boardIdxst,
+                                             Pageable pageable);
+
+
+    /**
+     * 최신순
+     * [조건] : lastArticleIdx 필요
+     **/
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "and b.boardIdx < :lastIdx " +
+            "and b.boardIdx in (:stacked) " +
+            "order by b.createAt desc, b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndCreateAtWithLastIdxAndStacks(@Param("category_idx") Long idx,
+                                                                    @Param("lastIdx") Long lastArticleIdx,
+                                                                    @Param("stacked") List<Long> boardIdxst,
+                                                           Pageable pageable);
+    /**
+     * 최신순 + (최초 조회)
+     * [조건] : lastArticleIdx 필요없음
+     **/
+
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "and b.boardIdx in (:stacked) " +
+            "order by b.createAt desc, b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndCreateAtAndStacks(@Param("category_idx") Long idx,
+                                                         @Param("stacked") List<Long> boardIdxst,
+                                                Pageable pageable);
 
 
     //기술 스택 검색
