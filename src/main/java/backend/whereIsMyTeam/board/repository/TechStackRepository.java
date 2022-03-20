@@ -14,4 +14,7 @@ public interface TechStackRepository extends JpaRepository<TechStack, Long> {
 
     @Query("select t from TechStack t where t.stackName=:stackName")
     TechStack findByStackName(@Param("stackName") String stackName);
+
+
+
 }
