@@ -116,16 +116,41 @@ public class BoardService {
     }
 
     /**
+     * 기술스택(string)으로 해당 기술idx를 가진 boardIdx를 List로 반환
+     *
+     **/
+    public List<Long> findStackIdx(List<String> params){
+
+        List<Long> boardIdxs = new ArrayList<>();
+        for (int i=0; i<params.size(); i++){
+            //스택 이름으로 stackIdx 가져오기
+            Long stackId = techStackRepository.findByStackName(params.get(i)).getStackIdx();
+            Long boardIdx= techStackBoardRepository.findByStackIdx(stackId).get().getBoard().getBoardIdx();
+            boardIdxs.add(boardIdx);
+        }
+
+        return boardIdxs;
+    }
+
+
+
+
+    /**
      * 게시물 전체 조회
      * @return MainBoardListResDto
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
     @Transactional
     public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
-                                                        int size, Long lastArticleIdx) {
+                                                        int size, Long lastArticleIdx
+                                                        ) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
         //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
+
+
+        //List<Board> boardList;
+
 
         Page<Board> boardList ;
 
@@ -145,10 +170,12 @@ public class BoardService {
 
         }
 
+
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
-        for (Board board : boardList.getContent()){
+        for (Board board : boardList
+                /*.getContent()*/){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
             if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
                 continue;
@@ -188,6 +215,87 @@ public class BoardService {
         //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
         return responseDtoList;
         
+    }
+
+    /**
+     * 기술 스택 포함한 전체 글 조회
+     **/
+
+    @Transactional
+    public List<MainBoardListResponseDto> findAllBoardsWithStack(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
+                                                        int size, Long lastArticleIdx,
+                                                                 List<Long> boardIdxst) {
+        //Board 타입의 해당 카테고리의 글들을 가져옴
+        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
+        Pageable pageable = PageRequest.of(0,size);
+
+
+        //List<Board> boardList;
+
+
+        Page<Board> boardList ;
+
+        if (liked) {
+            if(lastArticleIdx==0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
+                boardList = boardRepository.findAllByCategoryIdxAndLikedAndStacks(categoryIdx,boardIdxst,pageable);
+            } else{
+                boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdxAndStacks(categoryIdx, lastArticleIdx,boardIdxst, pageable);
+            }
+
+        }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
+            if(lastArticleIdx==0) {
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtAndStacks(categoryIdx,boardIdxst,pageable);
+            }else{
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdxAndStacks(categoryIdx,lastArticleIdx,boardIdxst,pageable);
+            }
+
+        }
+
+
+        //MainDto 타입의 반환 'List'로 생성
+        List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
+
+        for (Board board : boardList
+            /*.getContent()*/){
+            //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
+            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
+                continue;
+            }
+            if(meeting && board.getBoardStatuses().get(0).getCode()==2){
+                //'모집중'만 선택시 , list에서 모집완료는 배제
+                continue;
+            }
+
+            MainBoardListResponseDto newResponseDto;
+
+            //각 게시글마다 댓글 갯수,찜 갯수 받아서 넣어줌.
+            long commentNum = commentRepository.findCommentNum(board);
+            long heart=postLikeRepository.findPostLikeNum(board.getBoardIdx());
+
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+
+
+
+            //조회 로직 회원,비회원 구분 해야함
+            if(userIdx!=0) { //회원
+                String isHeart=postLikeService.checkPushedLikeString(userIdx,board.getBoardIdx());
+                newResponseDto = new MainBoardListResponseDto(board,stacks,commentNum,heart,isHeart);
+                //MainDto로 바꾼 게시글 하나하나씩 List<> 안에 넣어줌
+                responseDtoList.add(newResponseDto);
+            }
+            else{ //비회원
+                newResponseDto = new MainBoardListResponseDto(board,stacks,heart,commentNum);
+                responseDtoList.add(newResponseDto);
+            }
+
+        }
+        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
+        return responseDtoList;
+
     }
 
     /**
