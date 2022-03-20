@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.List;
 import java.util.Optional;
 
-public interface BoardRepository extends JpaRepository <Board, Long> {
+public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepositoryCustom{
 
     Optional<Board> findByBoardIdx(long boardIdx);
 
@@ -89,6 +89,8 @@ public interface BoardRepository extends JpaRepository <Board, Long> {
      * 기술스택_ 조회를 위해
      * 참고) https://wikidocs.net/155529
     **/
+
+
 
     //기술 스택 검색
     //findByStackNameContaining(String stackName)
