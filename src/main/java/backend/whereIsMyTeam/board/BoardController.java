@@ -148,7 +148,10 @@ public class BoardController {
                                                                      @RequestParam Boolean liked,
                                                                      @RequestParam Boolean meeting,
                                                                      @RequestParam int size,
-                                                                     @RequestParam(value = "lastArticleIdx") Long lastArticleIdx) {
+                                                                     @RequestParam(value = "lastArticleIdx") Long lastArticleIdx,
+                                                                     @RequestParam(value="stack1") String stack1,
+                                                                     @RequestParam(value="stack2") String stack2,
+                                                                     @RequestParam(value="stack3") String stack3) {
 
         if(userIdx!=0){ //회원이라면
             //access token 검증
@@ -156,10 +159,17 @@ public class BoardController {
             jwtTokenProvider.validateAccess(header, user.getEmail());
         }
 
-        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(userIdx,categoryIdx,
-                /*created,*/liked,meeting,size,lastArticleIdx);
+        try {
+                    List<MainBoardListResponseDto> listDto = boardService.findAllBoards(userIdx,categoryIdx,
+                /*created,*/liked,meeting,size,lastArticleIdx,stack1,stack2,stack3);
 
         return responseService.getSingleResult(listDto);
+        }catch (Exception e)
+        {
+            e.printStackTrace();
+            throw e;
+        }
+
 
 
 //        try {
