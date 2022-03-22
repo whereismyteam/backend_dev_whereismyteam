@@ -86,25 +86,22 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
     )
     Page<Board> findAllByCategoryIdx(@Param("category_idx") Long idx, Pageable pageable);
 
+
     /**
-     * 기술스택_ 조회를 위해
+     * 기술스택_ 조회를 위한 쿼리들...
      * 참고) https://wikidocs.net/155529
-    **/
-
-
-    /**
      * 좋아요순(조회수)
      * [조건] : lastArticleIdx 필요없음
      **/
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
-            "and b.boardIdx in (:stacked) " +
+            "and b.boardIdx in (:boardIdxst) " +
             "and b.boardIdx < :lastIdx " +
             "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndLikedWithLastIdxAndStacks(@Param("category_idx") Long idx,
                                                         @Param("lastIdx") Long lastArticleIdx,
-                                                        @Param("stacked") List<Long> boardIdxst,
+                                                        @Param("boardIdxst") List<Long> boardIdxst,
                                                         Pageable pageable);
 
 
@@ -115,10 +112,10 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
-            "and b.boardIdx in (:stacked) " +
+            "and b.boardIdx in (:boardIdxst) " +
             "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndLikedAndStacks(@Param("category_idx") Long idx,
-                                             @Param("stacked") List<Long> boardIdxst,
+                                             @Param("boardIdxst") List<Long> boardIdxst,
                                              Pageable pageable);
 
 
@@ -130,11 +127,11 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
             "from Board b " +
             "where b.category.idx = :category_idx " +
             "and b.boardIdx < :lastIdx " +
-            "and b.boardIdx in (:stacked) " +
+            "and b.boardIdx in (:boardIdxst) " +
             "order by b.createAt desc, b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndCreateAtWithLastIdxAndStacks(@Param("category_idx") Long idx,
                                                                     @Param("lastIdx") Long lastArticleIdx,
-                                                                    @Param("stacked") List<Long> boardIdxst,
+                                                                    @Param("boardIdxst") List<Long> boardIdxst,
                                                            Pageable pageable);
     /**
      * 최신순 + (최초 조회)
@@ -144,10 +141,10 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
-            "and b.boardIdx in (:stacked) " +
+            "and b.boardIdx in (:boardIdxst) " +
             "order by b.createAt desc, b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndCreateAtAndStacks(@Param("category_idx") Long idx,
-                                                         @Param("stacked") List<Long> boardIdxst,
+                                                         @Param("boardIdxst") List<Long> boardIdxst,
                                                 Pageable pageable);
 
 

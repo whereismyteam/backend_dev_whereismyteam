@@ -5,8 +5,6 @@ import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
-import backend.whereIsMyTeam.exception.User.UserNotFoundException;
-import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -116,19 +109,45 @@ public class BoardService {
     }
 
     /**
-     * 기술스택(string)으로 해당 기술idx를 가진 boardIdx를 List로 반환
-     *
+     * 기술스택(string)으로 해당 기술idx를 가진
+     * -> List<Long> boardIdx  목록으로 반환
      **/
-    public List<Long> findStackIdx(List<String> params){
+    public List<Long> findBoardListIdxs(searchRequestParams reqdto){
 
-        List<Long> boardIdxs = new ArrayList<>();
-        for (int i=0; i<params.size(); i++){
-            //스택 이름으로 stackIdx 가져오기
-            Long stackId = techStackRepository.findByStackName(params.get(i)).getStackIdx();
-            Long boardIdx= techStackBoardRepository.findByStackIdx(stackId).get().getBoard().getBoardIdx();
-            boardIdxs.add(boardIdx);
+        System.out.println("스택들의 사이즈는 받아오는가 " + reqdto.getTechStacks().size());
+
+
+        Set<Long> setboardIdxs = new HashSet<>(); //boardIdx 중복 제거
+
+        for (int i=0; i<reqdto.getTechStacks().size(); ++i){
+            //스택 이름으로 tstackIdx 가져오기
+            TechStack ts = techStackRepository.findByStackName(reqdto.getTechStacks().get(i));
+            //stackIdx 받아오기(해당 스택이름의)
+            Long stackIds = ts.getStackIdx();
+            System.out.println("해당 기술스택의 stackIdx 받아오기 " + stackIds);
+
+            //[문제] 쿼리 문제
+            List<Board> tsbs = techStackBoardRepository.findByTechStackIdx(stackIds);
+//            Long boardIdx = obj.get().getBoard().getBoardIdx();
+            System.out.println("해당 스택을 가진 Board들=" + tsbs);
+            System.out.println("해당 스택을 가진 Board들의 사이즈" + tsbs.size());
+            for (int j=0; j< tsbs.size(); j++){
+                Long boardIdx = tsbs.get(j).getBoardIdx();
+                System.out.println("지금 들어온 boardIdx는 " + boardIdx);
+                setboardIdxs.add(boardIdx);
+            }
+
+
+            //Long boardIdx= tsb.getBoardIdx();
+
+            //System.out.println("boardIdx 받아오기 " + boardIdx);
+            //boardIdxs.add(boardIdx);
+
+
         }
 
+        List<Long> boardIdxs = new ArrayList<>(setboardIdxs);
+        System.out.println("최종 받아 온 boardIdx 목록들 " + boardIdxs);
         return boardIdxs;
     }
 
@@ -142,8 +161,7 @@ public class BoardService {
      */
     @Transactional
     public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
-                                                        int size, Long lastArticleIdx
-                                                        ) {
+                                                        int size, Long lastArticleIdx) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
         //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
@@ -231,7 +249,7 @@ public class BoardService {
 
 
         //List<Board> boardList;
-
+        System.out.println("boardIdxst 값들은 " + boardIdxst);
 
         Page<Board> boardList ;
 
@@ -255,8 +273,7 @@ public class BoardService {
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
-        for (Board board : boardList
-            /*.getContent()*/){
+        for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
             if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
                 continue;

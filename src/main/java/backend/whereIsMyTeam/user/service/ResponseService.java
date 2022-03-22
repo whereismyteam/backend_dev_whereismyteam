@@ -1,7 +1,5 @@
 package backend.whereIsMyTeam.user.service;
 
-import backend.whereIsMyTeam.board.dto.MainBoardListResponseDto;
-import backend.whereIsMyTeam.result.CursorResult;
 import backend.whereIsMyTeam.result.MultipleResult;
 import backend.whereIsMyTeam.result.Result;
 import backend.whereIsMyTeam.result.SingleResult;
