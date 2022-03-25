@@ -29,12 +29,17 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
 
     /**
      * 좋아요순(조회수)
-     * [조건] : lastArticleIdx 필요없음
+     * [조건] : lastArticleIdx 필요 x
      **/
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
-            "and b.boardIdx < :lastIdx " +
+            "and " +
+            " ((( b.cnt = (select bc.cnt from Board bc where bc.boardIdx= :lastIdx )) " +
+            "and (b.boardIdx < :lastIdx)) " +
+            "or ((( b.cnt < (select bc.cnt from Board bc where bc.boardIdx= :lastIdx )) " +
+            "and (b.boardIdx not in :lastIdx)) ))" +
+            //"b.boardIdx not in :lastIdx "+
             "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndLikedWithLastIdx(@Param("category_idx") Long idx,
                                              @Param("lastIdx") Long lastArticleIdx,
@@ -43,7 +48,7 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
 
     /**
      * 좋아요순(조회수) + 최초 조회
-     * [조건] : lastArticleIdx 필요없음
+     * [조건] : lastArticleIdx 필요 x
      **/
     @Query(value = "select b " +
             "from Board b " +
@@ -67,7 +72,7 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
                                                 Pageable pageable);
     /**
      * 최신순 + (최초 조회)
-     * [조건] : lastArticleIdx 필요없음
+     * [조건] : lastArticleIdx 필요 x
     **/
 
     @Query(value = "select b " +
@@ -78,36 +83,11 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
                                                 Pageable pageable);
 
 
-    //좋아요순,최신순 x
-    //[조건] : lastArticleIdx 필요없음
-    @Query(value = "select b " +
-            "from Board b " +
-            "where b.category.idx = :category_idx "
-    )
-    Page<Board> findAllByCategoryIdx(@Param("category_idx") Long idx, Pageable pageable);
 
 
     /**
-     * 기술스택_ 조회를 위한 쿼리들...
-     * 참고) https://wikidocs.net/155529
-     * 좋아요순(조회수)
-     * [조건] : lastArticleIdx 필요없음
-     **/
-    @Query(value = "select b " +
-            "from Board b " +
-            "where b.category.idx = :category_idx " +
-            "and b.boardIdx in (:boardIdxst) " +
-            "and b.boardIdx < :lastIdx " +
-            "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
-    Page<Board> findAllByCategoryIdxAndLikedWithLastIdxAndStacks(@Param("category_idx") Long idx,
-                                                        @Param("lastIdx") Long lastArticleIdx,
-                                                        @Param("boardIdxst") List<Long> boardIdxst,
-                                                        Pageable pageable);
-
-
-    /**
-     * 좋아요순(조회수) + 최초 조회
-     * [조건] : lastArticleIdx 필요없음
+     * 기술스택 검색 + 좋아요순(조회수) + (최초 조회)
+     * [조건] : lastArticleIdx 필요 x
      **/
     @Query(value = "select b " +
             "from Board b " +
@@ -115,12 +95,61 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
             "and b.boardIdx in (:boardIdxst) " +
             "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndLikedAndStacks(@Param("category_idx") Long idx,
-                                             @Param("boardIdxst") List<Long> boardIdxst,
-                                             Pageable pageable);
+                                                      @Param("boardIdxst") List<Long> boardIdxst,
+                                                      Pageable pageable);
+
 
 
     /**
-     * 최신순
+     * 참고) https://wikidocs.net/155529
+     * 기술스택 검색 + 좋아요순(조회수)
+     * [조건] : lastArticleIdx 필요 x
+     *
+     *             @Query(value = "select b " +
+     *             "from Board b " +
+     *             "where b.category.idx = :category_idx " +
+     *             "and b.boardIdx in (:boardIdxst) " +
+     *             //"and b.boardIdx < :lastIdx " +
+     *             "and b.cnt <= (select bc.cnt from Board bc where bc.boardIdx= :lastIdx ) " +
+     *             "and b.boardIdx not in :lastIdx " +
+     *             "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
+     **/
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "and b.boardIdx in (:boardIdxst) " +
+            "and " +
+            " ((( b.cnt = (select bc.cnt from Board bc where bc.boardIdx= :lastIdx )) " +
+            "and (b.boardIdx < :lastIdx)) " +
+            "or ((( b.cnt < (select bc.cnt from Board bc where bc.boardIdx= :lastIdx )) " +
+            "and (b.boardIdx not in :lastIdx)) ))" +
+            "order by b.cnt desc, b.createAt desc ,b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndLikedWithLastIdxAndStacks(@Param("category_idx") Long idx,
+                                                        @Param("lastIdx") Long lastArticleIdx,
+                                                        @Param("boardIdxst") List<Long> boardIdxst,
+                                                        Pageable pageable);
+
+
+
+
+
+    /**
+     * 최신순 + (최초 조회)
+     * [조건] : lastArticleIdx 필요 x
+     **/
+
+    @Query(value = "select b " +
+            "from Board b " +
+            "where b.category.idx = :category_idx " +
+            "and b.boardIdx in (:boardIdxst) " +
+            "order by b.createAt desc, b.boardIdx desc")
+    Page<Board> findAllByCategoryIdxAndCreateAtAndStacks(@Param("category_idx") Long idx,
+                                                         @Param("boardIdxst") List<Long> boardIdxst,
+                                                         Pageable pageable);
+
+
+    /**
+     * 기술스택 검색 + 최신순
      * [조건] : lastArticleIdx 필요
      **/
     @Query(value = "select b " +
@@ -133,19 +162,6 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
                                                                     @Param("lastIdx") Long lastArticleIdx,
                                                                     @Param("boardIdxst") List<Long> boardIdxst,
                                                            Pageable pageable);
-    /**
-     * 최신순 + (최초 조회)
-     * [조건] : lastArticleIdx 필요없음
-     **/
-
-    @Query(value = "select b " +
-            "from Board b " +
-            "where b.category.idx = :category_idx " +
-            "and b.boardIdx in (:boardIdxst) " +
-            "order by b.createAt desc, b.boardIdx desc")
-    Page<Board> findAllByCategoryIdxAndCreateAtAndStacks(@Param("category_idx") Long idx,
-                                                         @Param("boardIdxst") List<Long> boardIdxst,
-                                                Pageable pageable);
 
 
     //기술 스택 검색

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,4 @@ public class searchRequestParams {
     @JsonProperty("tech_stacks")
     private final List<String> techStacks = new ArrayList<>();
 
-//    public String getTechs() {
-//        return techs;
-//    }
 }

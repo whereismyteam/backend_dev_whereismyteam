@@ -136,17 +136,16 @@ public class BoardController {
      * 최신순 : creatAt=true
      * 좋아요순(조회수) : liked = true
      **/
-    @PatchMapping("/homes/{userIdx}")
+    @GetMapping("/homes/{userIdx}")
     public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
                                                                      @PathVariable("userIdx") Long userIdx,
                                                                      @RequestParam(value = "categoryIdx") Long categoryIdx,
-//                                                                     @RequestParam(value = "createAt") Boolean created,
                                                                      @RequestParam Boolean liked,
                                                                      @RequestParam Boolean meeting,
                                                                      @RequestParam int size,
                                                                      @RequestParam(value = "lastArticleIdx") Long lastArticleIdx,
                                                                      //@RequestParam(value="stacks",required = false,defaultValue = "") List<String> stacks,
-                                                                     @RequestBody searchRequestParams dto) {
+                                                                     @Valid @RequestBody searchRequestParams dto) {
 
         if(userIdx!=0){ //회원이라면
             //access token 검증
@@ -155,24 +154,19 @@ public class BoardController {
         }
 
         List<MainBoardListResponseDto> listDto;
-        //[문제] dto 값이 안 넘어 오는 것 같음
-        //System.out.println("dto"+ dto.getTechStacks().get(0));
-
-        //[문제] dto가 안 들어왓을 경우가 판단이 안됨
-        //if(dto.length ==0)
 
         //기술 스택이 1개라도 들어왔을 경우, 들어온 스택의 idx를 가져오자
-        if (!(dto.getTechStacks() == null))
-        {
-            //해당 스택이름을 가진 stackIdx들 가져옴
-            //System.out.println("이게 ㅅㄹ행됨" + dto.getTechStacks().stream());
-            List<Long> boardIdxlist = boardService.findBoardListIdxs(dto);
-            System.out.println("boardIdx 묶음들 " + boardIdxlist);
+        if(dto.getTechStacks().size() != 0) {
 
-            listDto = boardService.findAllBoardsWithStack(userIdx, categoryIdx,
-                    /*created,*/liked, meeting, size, lastArticleIdx, boardIdxlist);
+
+                //해당 스택이름을 가진 stackIdx들 가져옴
+                List<Long> boardIdxlist = boardService.findBoardListIdxs(dto);
+                //System.out.println("boardIdx 묶음들 " + boardIdxlist);
+
+                listDto = boardService.findAllBoardsWithStack(userIdx, categoryIdx,
+                        /*created,*/liked, meeting, size, lastArticleIdx, boardIdxlist);
+
         }
-
         else
         {
             listDto = boardService.findAllBoards(userIdx, categoryIdx,

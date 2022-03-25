@@ -114,10 +114,8 @@ public class BoardService {
      **/
     public List<Long> findBoardListIdxs(searchRequestParams reqdto){
 
-        System.out.println("스택들의 사이즈는 받아오는가 " + reqdto.getTechStacks().size());
-
-
-        Set<Long> setboardIdxs = new HashSet<>(); //boardIdx 중복 제거
+        //boardIdx 중복 제거
+        Set<Long> setboardIdxs = new HashSet<>();
 
         for (int i=0; i<reqdto.getTechStacks().size(); ++i){
             //스택 이름으로 tstackIdx 가져오기
@@ -128,26 +126,16 @@ public class BoardService {
 
             //[문제] 쿼리 문제
             List<Board> tsbs = techStackBoardRepository.findByTechStackIdx(stackIds);
-//            Long boardIdx = obj.get().getBoard().getBoardIdx();
-            System.out.println("해당 스택을 가진 Board들=" + tsbs);
-            System.out.println("해당 스택을 가진 Board들의 사이즈" + tsbs.size());
+
             for (int j=0; j< tsbs.size(); j++){
                 Long boardIdx = tsbs.get(j).getBoardIdx();
                 System.out.println("지금 들어온 boardIdx는 " + boardIdx);
                 setboardIdxs.add(boardIdx);
             }
 
-
-            //Long boardIdx= tsb.getBoardIdx();
-
-            //System.out.println("boardIdx 받아오기 " + boardIdx);
-            //boardIdxs.add(boardIdx);
-
-
         }
 
         List<Long> boardIdxs = new ArrayList<>(setboardIdxs);
-        System.out.println("최종 받아 온 boardIdx 목록들 " + boardIdxs);
         return boardIdxs;
     }
 
@@ -155,7 +143,7 @@ public class BoardService {
 
 
     /**
-     * 게시물 전체 조회
+     * 게시물 전체 조회 (스택 검사 x)
      * @return MainBoardListResDto
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
@@ -163,19 +151,19 @@ public class BoardService {
     public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
                                                         int size, Long lastArticleIdx) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
+        //[문제]size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
-
 
         //List<Board> boardList;
 
-
         Page<Board> boardList ;
 
-        if (liked) {
-            if(lastArticleIdx==0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
+        if (liked)
+        {
+            if(lastArticleIdx==0){ //처음으로 조회했을때(0으로 처리해도 되는지 고려)
                 boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx,pageable);
-            } else{
+            }
+            else{
                 boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdx(categoryIdx, lastArticleIdx, pageable);
             }
 
@@ -188,12 +176,14 @@ public class BoardService {
 
         }
 
-
-        //MainDto 타입의 반환 'List'로 생성
+        //[문제]: 게시글이 더이상 없을 경우
+        if (boardList.getContent().size() == 0) {
+            throw new LastBoardExistException();
+        }
+        //매번 size만큼 받아와 MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
-        for (Board board : boardList
-                /*.getContent()*/){
+        for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
             if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
                 continue;
@@ -216,7 +206,6 @@ public class BoardService {
             }
 
 
-
             //조회 로직 회원,비회원 구분 해야함
             if(userIdx!=0) { //회원
                 String isHeart=postLikeService.checkPushedLikeString(userIdx,board.getBoardIdx());
@@ -230,7 +219,7 @@ public class BoardService {
             }
 
         }
-        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
+
         return responseDtoList;
         
     }
@@ -253,6 +242,7 @@ public class BoardService {
 
         Page<Board> boardList ;
 
+
         if (liked) {
             if(lastArticleIdx==0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
                 boardList = boardRepository.findAllByCategoryIdxAndLikedAndStacks(categoryIdx,boardIdxst,pageable);
@@ -269,6 +259,11 @@ public class BoardService {
 
         }
 
+
+        //뒤에 오는 게시글이 이제 없을 경우
+        if (boardList.getContent().size()== 0) {
+            throw new LastBoardExistException();
+        }
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
