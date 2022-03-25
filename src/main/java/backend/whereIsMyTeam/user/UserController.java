@@ -59,8 +59,8 @@ public class UserController {
     public SingleResult<UserLoginResponseDto> loginByGoogle(@RequestBody String authCode, @PathVariable String provider) {
         if(authCode==null)
             throw new AuthCodeNotExistException();
-        UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode, provider);
-
+        //UserLoginResponseDto responseDto = userService.loginUserByProvider(authCode, provider);
+        UserLoginResponseDto responseDto = userService.loginUserByProvider("4/0AX4XfWg5ooH-oy_Zx-OAaCho6YRoqnzFzfutyqEj3rSHHcIrYhYkuHhjo9tKxIDdH6tsug", provider);
         return responseService.getSingleResult(responseDto);
     }
 

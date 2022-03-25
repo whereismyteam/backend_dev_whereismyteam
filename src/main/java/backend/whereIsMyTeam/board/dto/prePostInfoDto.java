@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Setter
 public class prePostInfoDto {
 
+    private long postIdx;
     private String title;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;

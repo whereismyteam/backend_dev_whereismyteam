@@ -498,7 +498,7 @@ public class BoardService {
 
             prePostInfoDto newResponseDto;
 
-            newResponseDto = new prePostInfoDto(board.getTitle(),board.getCreateAt());
+            newResponseDto = new prePostInfoDto(board.getBoardIdx(),board.getTitle(),board.getCreateAt());
 
             responseDtoList.add(newResponseDto);
             num++;
