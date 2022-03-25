@@ -17,14 +17,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 @Slf4j
 @RestController
@@ -136,11 +133,19 @@ public class BoardController {
      * 게시물 목록 조회 API
      * [GET] users/homes/:categoryIdx
      * @return SingleResult<String>
-     *     /{categoryIdx}
+     * 최신순 : creatAt=true
+     * 좋아요순(조회수) : liked = true
      **/
     @GetMapping("/homes/{userIdx}")
-    public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header, @RequestParam(value = "categoryIdx") Long categoryIdx,
-                                                                     @PathVariable("userIdx") Long userIdx) {
+    public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
+                                                                     @PathVariable("userIdx") Long userIdx,
+                                                                     @RequestParam(value = "categoryIdx") Long categoryIdx,
+                                                                     @RequestParam Boolean liked,
+                                                                     @RequestParam Boolean meeting,
+                                                                     @RequestParam int size,
+                                                                     @RequestParam(value = "lastArticleIdx") Long lastArticleIdx,
+                                                                     //@RequestParam(value="stacks",required = false,defaultValue = "") List<String> stacks,
+                                                                     @Valid @RequestBody searchRequestParams dto) {
 
         if(userIdx!=0){ //회원이라면
             //access token 검증
@@ -148,8 +153,25 @@ public class BoardController {
             jwtTokenProvider.validateAccess(header, user.getEmail());
         }
 
-        List<MainBoardListResponseDto> listDto = boardService.findAllBoards(userIdx,categoryIdx);
+        List<MainBoardListResponseDto> listDto;
 
+        //기술 스택이 1개라도 들어왔을 경우, 들어온 스택의 idx를 가져오자
+        if(dto.getTechStacks().size() != 0) {
+
+
+                //해당 스택이름을 가진 stackIdx들 가져옴
+                List<Long> boardIdxlist = boardService.findBoardListIdxs(dto);
+                //System.out.println("boardIdx 묶음들 " + boardIdxlist);
+
+                listDto = boardService.findAllBoardsWithStack(userIdx, categoryIdx,
+                        /*created,*/liked, meeting, size, lastArticleIdx, boardIdxlist);
+
+        }
+        else
+        {
+            listDto = boardService.findAllBoards(userIdx, categoryIdx,
+                    /*created,*/liked, meeting, size, lastArticleIdx);
+        }
         return responseService.getSingleResult(listDto);
 
 

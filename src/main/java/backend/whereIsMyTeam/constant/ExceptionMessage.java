@@ -60,4 +60,5 @@ public class ExceptionMessage {
     public static String ONLY_WRITER_CAN_MESSAGE="글 작성자 외엔 권한이 없습니다.";
     public static final String NOT_BOARD_STATUS_EXCEPTION_MESSAGE = "BOARD STATUS 에러입니다";
     public static String NOT_MATCH_MEETING_STATUS_EXCEPTION_MESSAGE = "MEETING STATUS를 제대로 기입해주세요.";
+    public static String LAST_BOARD_EXCEPTION_MESSAGE = "더이상 조회되는 게시글이 없습니다.";
 }

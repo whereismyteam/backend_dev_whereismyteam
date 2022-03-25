@@ -48,4 +48,19 @@ public class ResponseService {
 
         return result;
     }
+
+    //메인페이지 전용 hasNext 전용
+    public void setSuccessedResult(Result result){
+        result.setSuccess(true);
+        result.setCode(0);
+        result.setMsg("성공");
+    }
+
+//    public <T> CursorResult<T> getCursorResult(List<T> values, Boolean hasNext) {
+//        CursorResult<T> result = new CursorResult<>();
+//        setSuccessedResult(result);
+//
+//
+//        return result;
+//    }
 }

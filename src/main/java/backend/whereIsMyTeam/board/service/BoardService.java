@@ -5,23 +5,19 @@ import backend.whereIsMyTeam.board.domain.*;
 import backend.whereIsMyTeam.board.dto.*;
 import backend.whereIsMyTeam.exception.Board.*;
 import backend.whereIsMyTeam.exception.User.UserNotExistException;
-import backend.whereIsMyTeam.exception.User.UserNotFoundException;
-import backend.whereIsMyTeam.result.SingleResult;
 import backend.whereIsMyTeam.user.UserRepository;
 import backend.whereIsMyTeam.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.logging.Logger;
 import org.mybatis.logging.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -113,23 +109,174 @@ public class BoardService {
     }
 
     /**
-     * 게시물 전체 조회
+     * 기술스택(string)으로 해당 기술idx를 가진
+     * -> List<Long> boardIdx  목록으로 반환
+     **/
+    public List<Long> findBoardListIdxs(searchRequestParams reqdto){
+
+        //boardIdx 중복 제거
+        Set<Long> setboardIdxs = new HashSet<>();
+
+        for (int i=0; i<reqdto.getTechStacks().size(); ++i){
+            //스택 이름으로 tstackIdx 가져오기
+            TechStack ts = techStackRepository.findByStackName(reqdto.getTechStacks().get(i));
+            //stackIdx 받아오기(해당 스택이름의)
+            Long stackIds = ts.getStackIdx();
+            System.out.println("해당 기술스택의 stackIdx 받아오기 " + stackIds);
+
+            //[문제] 쿼리 문제
+            List<Board> tsbs = techStackBoardRepository.findByTechStackIdx(stackIds);
+
+            for (int j=0; j< tsbs.size(); j++){
+                Long boardIdx = tsbs.get(j).getBoardIdx();
+                System.out.println("지금 들어온 boardIdx는 " + boardIdx);
+                setboardIdxs.add(boardIdx);
+            }
+
+        }
+
+        List<Long> boardIdxs = new ArrayList<>(setboardIdxs);
+        return boardIdxs;
+    }
+
+
+
+
+    /**
+     * 게시물 전체 조회 (스택 검사 x)
      * @return MainBoardListResDto
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
     @Transactional
-    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx) {
+    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
+                                                        int size, Long lastArticleIdx) {
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //List<Board> boardList = boardRepository.findAllByCategoryIdxWithBoardStatus(categoryIdx,userIdx);
-        List<Board> boardList = boardRepository.findAllByCategoryIdx(categoryIdx);
+        //[문제]size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
+        Pageable pageable = PageRequest.of(0,size);
+
+        //List<Board> boardList;
+
+        Page<Board> boardList ;
+
+        if (liked)
+        {
+            if(lastArticleIdx==0){ //처음으로 조회했을때(0으로 처리해도 되는지 고려)
+                boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx,pageable);
+            }
+            else{
+                boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdx(categoryIdx, lastArticleIdx, pageable);
+            }
+
+        }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
+            if(lastArticleIdx==0) {
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx,pageable);
+            }else{
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdx(categoryIdx,lastArticleIdx,pageable);
+            }
+
+        }
+
+        //[문제]: 게시글이 더이상 없을 경우
+        if (boardList.getContent().size() == 0) {
+            throw new LastBoardExistException();
+        }
+        //매번 size만큼 받아와 MainDto 타입의 반환 'List'로 생성
+        List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
+
+        for (Board board : boardList.getContent()){
+            //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
+            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
+                continue;
+            }
+            if(meeting && board.getBoardStatuses().get(0).getCode()==2){
+                //'모집중'만 선택시 , list에서 모집완료는 배제
+                continue;
+            }
+
+            MainBoardListResponseDto newResponseDto;
+
+            //각 게시글마다 댓글 갯수,찜 갯수 받아서 넣어줌.
+            long commentNum = commentRepository.findCommentNum(board);
+            long heart=postLikeRepository.findPostLikeNum(board.getBoardIdx());
+
+            List<TechStackBoard> techStackBoards=board.getTechstacks();
+            List<String> stacks=new ArrayList<>(techStackBoards.size());
+            for(int i=0;i<techStackBoards.size();++i){
+                stacks.add(i,techStackBoards.get(i).getTechStack().getStackName());
+            }
+
+
+            //조회 로직 회원,비회원 구분 해야함
+            if(userIdx!=0) { //회원
+                String isHeart=postLikeService.checkPushedLikeString(userIdx,board.getBoardIdx());
+                newResponseDto = new MainBoardListResponseDto(board,stacks,commentNum,heart,isHeart);
+                //MainDto로 바꾼 게시글 하나하나씩 List<> 안에 넣어줌
+                responseDtoList.add(newResponseDto);
+            }
+            else{ //비회원
+                newResponseDto = new MainBoardListResponseDto(board,stacks,heart,commentNum);
+                responseDtoList.add(newResponseDto);
+            }
+
+        }
+
+        return responseDtoList;
+        
+    }
+
+    /**
+     * 기술 스택 포함한 전체 글 조회
+     **/
+
+    @Transactional
+    public List<MainBoardListResponseDto> findAllBoardsWithStack(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
+                                                        int size, Long lastArticleIdx,
+                                                                 List<Long> boardIdxst) {
+        //Board 타입의 해당 카테고리의 글들을 가져옴
+        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
+        Pageable pageable = PageRequest.of(0,size);
+
+
+        //List<Board> boardList;
+        System.out.println("boardIdxst 값들은 " + boardIdxst);
+
+        Page<Board> boardList ;
+
+
+        if (liked) {
+            if(lastArticleIdx==0) { //처음으로 조회했을때(0으로 처리해도 되는지 고려)
+                boardList = boardRepository.findAllByCategoryIdxAndLikedAndStacks(categoryIdx,boardIdxst,pageable);
+            } else{
+                boardList = boardRepository.findAllByCategoryIdxAndLikedWithLastIdxAndStacks(categoryIdx, lastArticleIdx,boardIdxst, pageable);
+            }
+
+        }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
+            if(lastArticleIdx==0) {
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtAndStacks(categoryIdx,boardIdxst,pageable);
+            }else{
+                boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdxAndStacks(categoryIdx,lastArticleIdx,boardIdxst,pageable);
+            }
+
+        }
+
+
+        //뒤에 오는 게시글이 이제 없을 경우
+        if (boardList.getContent().size()== 0) {
+            throw new LastBoardExistException();
+        }
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
-        for (Board board : boardList){
+        for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
-            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3)
+            if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
                 continue;
+            }
+            if(meeting && board.getBoardStatuses().get(0).getCode()==2){
+                //'모집중'만 선택시 , list에서 모집완료는 배제
+                continue;
+            }
 
             MainBoardListResponseDto newResponseDto;
 
@@ -158,8 +305,9 @@ public class BoardService {
             }
 
         }
+        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
         return responseDtoList;
-        
+
     }
 
     /**
