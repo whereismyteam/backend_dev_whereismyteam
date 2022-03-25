@@ -21,4 +21,6 @@ public class WhereIsMyTeamApplication {
 		return new RestTemplate();
 	}
 
+	//RestTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+
 }
