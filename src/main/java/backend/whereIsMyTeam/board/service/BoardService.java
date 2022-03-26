@@ -122,19 +122,19 @@ public class BoardService {
             TechStack ts = techStackRepository.findByStackName(reqdto.getTechStacks().get(i));
             //stackIdx 받아오기(해당 스택이름의)
             Long stackIds = ts.getStackIdx();
-            System.out.println("해당 기술스택의 stackIdx 받아오기 " + stackIds);
+
 
             //[문제] 쿼리 문제
             List<Board> tsbs = techStackBoardRepository.findByTechStackIdx(stackIds);
 
             for (int j=0; j< tsbs.size(); j++){
                 Long boardIdx = tsbs.get(j).getBoardIdx();
-                System.out.println("지금 들어온 boardIdx는 " + boardIdx);
                 setboardIdxs.add(boardIdx);
             }
 
         }
 
+        //다시 List로 반환
         List<Long> boardIdxs = new ArrayList<>(setboardIdxs);
         return boardIdxs;
     }
@@ -148,18 +148,16 @@ public class BoardService {
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
     @Transactional
-    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
+    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, Boolean liked, Boolean meeting,
                                                         int size, Long lastArticleIdx) {
+
+
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //[문제]size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
-
-        //List<Board> boardList;
-
         Page<Board> boardList ;
 
-        if (liked)
-        {
+
+        if (liked) {
             if(lastArticleIdx==0){ //처음으로 조회했을때(0으로 처리해도 되는지 고려)
                 boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx,pageable);
             }
@@ -169,10 +167,6 @@ public class BoardService {
 
         }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
             if(lastArticleIdx==0) {
-                /**
-                 * [문제를 위한 쿼리작성]
-                 * 이 부분에서 모집중, 모집완료 둘 다 뜨게 처리해야 할듯
-                **/
                 boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx,pageable);
             }else{
                 boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdx(categoryIdx,lastArticleIdx,pageable);
@@ -180,14 +174,11 @@ public class BoardService {
         }
 
 
-        if (boardList.getContent().size() == 0) {
-            throw new LastBoardExistException();
-        }
+
         //매번 size만큼 받아와 MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
-        //[문제]: 해당 boardList는 9개만 딱 받아오는데 아래에서 모집중에서 몇 개의 board가
-        // 제외되면서 결과적으로 갯수가 안 맞음 => 쿼리 자체에서 모집중(Enum) 부분을 처리해야함
+
         for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
             if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
@@ -197,6 +188,7 @@ public class BoardService {
                 //'모집중'만 선택시 , list에서 모집완료는 배제
                 continue;
             }
+
 
             MainBoardListResponseDto newResponseDto;
 
@@ -224,11 +216,19 @@ public class BoardService {
             }
 
         }
+
+        //[예외처리]
         if (responseDtoList.size()==0)
             throw new LastBoardExistException();
 
-        return responseDtoList;
-        
+        //Board 결과 인출
+        if (responseDtoList.size() > 9){
+            List<MainBoardListResponseDto> a = new ArrayList<>(responseDtoList.subList(0,9));
+            return a;
+        }else {
+            return responseDtoList;
+        }
+
     }
 
     /**
@@ -239,14 +239,10 @@ public class BoardService {
     public List<MainBoardListResponseDto> findAllBoardsWithStack(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
                                                         int size, Long lastArticleIdx,
                                                                  List<Long> boardIdxst) {
+
+
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
-
-
-        //List<Board> boardList;
-        //System.out.println("boardIdxst 값들은 " + boardIdxst);
-
         Page<Board> boardList ;
 
 
@@ -267,10 +263,6 @@ public class BoardService {
         }
 
 
-        //뒤에 오는 게시글이 이제 없을 경우
-        if (boardList.getContent().size()== 0) {
-            throw new LastBoardExistException();
-        }
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
@@ -312,13 +304,20 @@ public class BoardService {
             }
         }
 
-        //나올 값이 없다면 예외처리
+        //[예외처리]
         if (responseDtoList.size()==0)
             throw new LastBoardExistException();
 
-        return responseDtoList;
+
+        if (responseDtoList.size() > 9){
+            List<MainBoardListResponseDto> a = new ArrayList<>(responseDtoList.subList(0,9));
+            return a;
+        }else {
+            return responseDtoList;
+        }
 
     }
+
 
     /**
      * 게시물 단건 조회
