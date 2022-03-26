@@ -85,8 +85,6 @@ public class Comment extends BaseTimeEntity {
     //댓글 또는 답글 삭제
     public void delete() {
         this.status = "N";
-        //for debug
-        System.out.println("2");
     }
 
 
@@ -120,7 +118,6 @@ public class Comment extends BaseTimeEntity {
 
     //모든 자식 댓글이 삭제되었는지 판단
     private String isAllChildRemoved() {
-        System.out.println("12");
         return getChildren().stream()
                 .map(Comment::getStatus)//지워졌는지 여부로 바꾼다
                 .filter(status -> status.equals("Y"))//지워졌으면 true, 안지워졌으면 false

@@ -1,6 +1,7 @@
 package backend.whereIsMyTeam.board.repository;
 
 import backend.whereIsMyTeam.board.domain.Board;
+import backend.whereIsMyTeam.board.domain.BoardStatus;
 import backend.whereIsMyTeam.board.dto.MainBoardListResponseDto;
 import org.springframework.data.domain.Page;
 import backend.whereIsMyTeam.user.domain.User;
@@ -12,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +73,7 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
                                                 @Param("lastIdx") Long lastArticleIdx,
                                                 Pageable pageable);
     /**
-     * 최신순 + (최초 조회)
+     * 최신순 + (최초 조회) + 모집중만 추가
      * [조건] : lastArticleIdx 필요 x
     **/
 

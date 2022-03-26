@@ -122,19 +122,19 @@ public class BoardService {
             TechStack ts = techStackRepository.findByStackName(reqdto.getTechStacks().get(i));
             //stackIdx 받아오기(해당 스택이름의)
             Long stackIds = ts.getStackIdx();
-            System.out.println("해당 기술스택의 stackIdx 받아오기 " + stackIds);
+
 
             //[문제] 쿼리 문제
             List<Board> tsbs = techStackBoardRepository.findByTechStackIdx(stackIds);
 
             for (int j=0; j< tsbs.size(); j++){
                 Long boardIdx = tsbs.get(j).getBoardIdx();
-                System.out.println("지금 들어온 boardIdx는 " + boardIdx);
                 setboardIdxs.add(boardIdx);
             }
 
         }
 
+        //다시 List로 반환
         List<Long> boardIdxs = new ArrayList<>(setboardIdxs);
         return boardIdxs;
     }
@@ -148,18 +148,16 @@ public class BoardService {
      * [조건] : 게시물 상태는 "모집중","모집완료"만 띄워줘야 함 -> 쿼리에서 제대로 선택하도록
      */
     @Transactional
-    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
+    public List<MainBoardListResponseDto> findAllBoards(Long userIdx,Long categoryIdx, Boolean liked, Boolean meeting,
                                                         int size, Long lastArticleIdx) {
+
+
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //[문제]size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
-
-        //List<Board> boardList;
-
         Page<Board> boardList ;
 
-        if (liked)
-        {
+
+        if (liked) {
             if(lastArticleIdx==0){ //처음으로 조회했을때(0으로 처리해도 되는지 고려)
                 boardList = boardRepository.findAllByCategoryIdxAndLiked(categoryIdx,pageable);
             }
@@ -173,15 +171,13 @@ public class BoardService {
             }else{
                 boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdx(categoryIdx,lastArticleIdx,pageable);
             }
-
         }
 
-        //[문제]: 게시글이 더이상 없을 경우
-        if (boardList.getContent().size() == 0) {
-            throw new LastBoardExistException();
-        }
+
+
         //매번 size만큼 받아와 MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
+
 
         for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
@@ -192,6 +188,7 @@ public class BoardService {
                 //'모집중'만 선택시 , list에서 모집완료는 배제
                 continue;
             }
+
 
             MainBoardListResponseDto newResponseDto;
 
@@ -220,8 +217,18 @@ public class BoardService {
 
         }
 
-        return responseDtoList;
-        
+        //[예외처리]
+        if (responseDtoList.size()==0)
+            throw new LastBoardExistException();
+
+        //Board 결과 인출
+        if (responseDtoList.size() > 9){
+            List<MainBoardListResponseDto> a = new ArrayList<>(responseDtoList.subList(0,9));
+            return a;
+        }else {
+            return responseDtoList;
+        }
+
     }
 
     /**
@@ -232,14 +239,10 @@ public class BoardService {
     public List<MainBoardListResponseDto> findAllBoardsWithStack(Long userIdx,Long categoryIdx, /*Boolean created,*/ Boolean liked,Boolean meeting,
                                                         int size, Long lastArticleIdx,
                                                                  List<Long> boardIdxst) {
+
+
         //Board 타입의 해당 카테고리의 글들을 가져옴
-        //size가 0-2까지 결과를 넣었을때 원하는 결과가 출력이 안됨.
         Pageable pageable = PageRequest.of(0,size);
-
-
-        //List<Board> boardList;
-        System.out.println("boardIdxst 값들은 " + boardIdxst);
-
         Page<Board> boardList ;
 
 
@@ -260,10 +263,6 @@ public class BoardService {
         }
 
 
-        //뒤에 오는 게시글이 이제 없을 경우
-        if (boardList.getContent().size()== 0) {
-            throw new LastBoardExistException();
-        }
 
         //MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
@@ -303,12 +302,22 @@ public class BoardService {
                 newResponseDto = new MainBoardListResponseDto(board,stacks,heart,commentNum);
                 responseDtoList.add(newResponseDto);
             }
-
         }
-        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
-        return responseDtoList;
+
+        //[예외처리]
+        if (responseDtoList.size()==0)
+            throw new LastBoardExistException();
+
+
+        if (responseDtoList.size() > 9){
+            List<MainBoardListResponseDto> a = new ArrayList<>(responseDtoList.subList(0,9));
+            return a;
+        }else {
+            return responseDtoList;
+        }
 
     }
+
 
     /**
      * 게시물 단건 조회
