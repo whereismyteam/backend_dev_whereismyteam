@@ -169,20 +169,25 @@ public class BoardService {
 
         }else{ //기본정렬(최신순)->카테고리 Idx로만 내보냄
             if(lastArticleIdx==0) {
+                /**
+                 * [문제를 위한 쿼리작성]
+                 * 이 부분에서 모집중, 모집완료 둘 다 뜨게 처리해야 할듯
+                **/
                 boardList = boardRepository.findAllByCategoryIdxAndCreateAt(categoryIdx,pageable);
             }else{
                 boardList = boardRepository.findAllByCategoryIdxAndCreateAtWithLastIdx(categoryIdx,lastArticleIdx,pageable);
             }
-
         }
 
-        //[문제]: 게시글이 더이상 없을 경우
+
         if (boardList.getContent().size() == 0) {
             throw new LastBoardExistException();
         }
         //매번 size만큼 받아와 MainDto 타입의 반환 'List'로 생성
         List<MainBoardListResponseDto> responseDtoList = new ArrayList<>();
 
+        //[문제]: 해당 boardList는 9개만 딱 받아오는데 아래에서 모집중에서 몇 개의 board가
+        // 제외되면서 결과적으로 갯수가 안 맞음 => 쿼리 자체에서 모집중(Enum) 부분을 처리해야함
         for (Board board : boardList.getContent()){
             //메인페이지에서 BoardStatus의 (임시저장, 삭제)는 조회되면 안됨.
             if(board.getBoardStatuses().get(0).getCode()==0 || board.getBoardStatuses().get(0).getCode()==3){
@@ -219,6 +224,8 @@ public class BoardService {
             }
 
         }
+        if (responseDtoList.size()==0)
+            throw new LastBoardExistException();
 
         return responseDtoList;
         
@@ -238,7 +245,7 @@ public class BoardService {
 
 
         //List<Board> boardList;
-        System.out.println("boardIdxst 값들은 " + boardIdxst);
+        //System.out.println("boardIdxst 값들은 " + boardIdxst);
 
         Page<Board> boardList ;
 
@@ -303,9 +310,12 @@ public class BoardService {
                 newResponseDto = new MainBoardListResponseDto(board,stacks,heart,commentNum);
                 responseDtoList.add(newResponseDto);
             }
-
         }
-        //이러고 맨 마지막 페이지에 hasNext 해줘야 할거 같음
+
+        //나올 값이 없다면 예외처리
+        if (responseDtoList.size()==0)
+            throw new LastBoardExistException();
+
         return responseDtoList;
 
     }
