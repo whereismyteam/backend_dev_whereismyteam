@@ -1,6 +1,7 @@
 package backend.whereIsMyTeam.board.repository;
 
 import backend.whereIsMyTeam.board.domain.Board;
+import backend.whereIsMyTeam.board.domain.BoardStatus;
 import backend.whereIsMyTeam.board.dto.MainBoardListResponseDto;
 import org.springframework.data.domain.Page;
 import backend.whereIsMyTeam.user.domain.User;
@@ -71,15 +72,17 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
                                                 @Param("lastIdx") Long lastArticleIdx,
                                                 Pageable pageable);
     /**
-     * 최신순 + (최초 조회)
+     * 최신순 + (최초 조회) + 모집중만 추가
      * [조건] : lastArticleIdx 필요 x
     **/
-
+    //채린님 여기가 그 문제의 부분입니다 ㅠㅠ
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
+            "and  (select bs from BoardStatus bs where bs.get ) "+
             "order by b.createAt desc, b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndCreateAt(@Param("category_idx") Long idx,
+                                                @Param("meeting") BoardStatus.STORED,
                                                 Pageable pageable);
 
 

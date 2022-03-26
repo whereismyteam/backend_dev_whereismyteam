@@ -136,7 +136,7 @@ public class BoardController {
      * 최신순 : creatAt=true
      * 좋아요순(조회수) : liked = true
      **/
-    @GetMapping("/homes/{userIdx}")
+    @PatchMapping("/homes/{userIdx}")
     public SingleResult<List<MainBoardListResponseDto>> getBoardAll (HttpServletRequest header,
                                                                      @PathVariable("userIdx") Long userIdx,
                                                                      @RequestParam(value = "categoryIdx") Long categoryIdx,
