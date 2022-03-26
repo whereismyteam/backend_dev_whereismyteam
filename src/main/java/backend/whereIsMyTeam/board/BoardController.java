@@ -161,16 +161,15 @@ public class BoardController {
 
                 //해당 스택이름을 가진 stackIdx들 가져옴
                 List<Long> boardIdxlist = boardService.findBoardListIdxs(dto);
-                //System.out.println("boardIdx 묶음들 " + boardIdxlist);
 
                 listDto = boardService.findAllBoardsWithStack(userIdx, categoryIdx,
-                        /*created,*/liked, meeting, size, lastArticleIdx, boardIdxlist);
+                        liked, meeting, size, lastArticleIdx, boardIdxlist);
 
         }
         else
         {
             listDto = boardService.findAllBoards(userIdx, categoryIdx,
-                    /*created,*/liked, meeting, size, lastArticleIdx);
+                    liked, meeting, size, lastArticleIdx);
         }
         return responseService.getSingleResult(listDto);
 

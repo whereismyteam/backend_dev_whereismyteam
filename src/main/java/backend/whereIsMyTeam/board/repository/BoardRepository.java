@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,14 +76,12 @@ public interface BoardRepository extends JpaRepository <Board, Long> , BoardRepo
      * 최신순 + (최초 조회) + 모집중만 추가
      * [조건] : lastArticleIdx 필요 x
     **/
-    //채린님 여기가 그 문제의 부분입니다 ㅠㅠ
+
     @Query(value = "select b " +
             "from Board b " +
             "where b.category.idx = :category_idx " +
-            "and  (select bs from BoardStatus bs where bs.get ) "+
             "order by b.createAt desc, b.boardIdx desc")
     Page<Board> findAllByCategoryIdxAndCreateAt(@Param("category_idx") Long idx,
-                                                @Param("meeting") BoardStatus.STORED,
                                                 Pageable pageable);
 
 
